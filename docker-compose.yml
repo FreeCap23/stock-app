@@ -33,6 +33,9 @@ services:
     env_file:
       - path: ./app.env
         required: true
+      - path: ./mariadb.env
+        required: true
+
     ports:
       # The first port is the port that you can connect to from the host.
       # The second port is the port that other containers can connect to.
