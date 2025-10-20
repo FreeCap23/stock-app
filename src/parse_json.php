@@ -8,10 +8,10 @@ enum Timescale
 class Metadata
 {
     public Timescale $type; // The type of data received, e.g. daily, weekly, hourly, etc.
-    public $symbol;
-    public $update_time;
-    public $size;
-    public $timezone;
+    public string $symbol;
+    public string $update_time;
+    public string $size;
+    public string $timezone;
 }
 
 class OHLCV
@@ -26,6 +26,7 @@ class OHLCV
 function json_to_metadata_object(string $json_string): Metadata
 {
     $array = json_decode($json_string, true);
+    $array = $array["Meta Data"];
 
     $metadata = new Metadata();
     try {
