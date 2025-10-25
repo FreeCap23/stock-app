@@ -36,6 +36,31 @@ final class parse_json_test extends TestCase
 
         $this->assertEquals($converted, $expected);
     }
+
+    public function testJsonToOhlcvObject(): void
+    {
+        $json = '{
+                "2025-10-17": {
+                    "1. open": "248.0200",
+                    "2. high": "253.3800",
+                    "3. low": "247.2700",
+                    "4. close": "252.2900",
+                    "5. volume": "49146961"
+                }
+            }';
+        $converted = json_to_ohlcv_object($json);
+
+        // Build expected object
+        $expected = new OHLCV();
+        $expected->date = "2025-10-17";
+        $expected->open = "248.0200";
+        $expected->high = "253.3800";
+        $expected->low = "247.2700";
+        $expected->close = "252.2900";
+        $expected->volume = "49146961";
+
+        $this->assertEquals($converted, $expected);
+    }
 }
 
 ?>
