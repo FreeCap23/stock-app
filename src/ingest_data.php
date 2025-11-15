@@ -1,10 +1,12 @@
 <?php declare(strict_types=1);
-require "parse_json.php";
+require_once "parse_json.php";
 
 function create_sql_connection()
 {
     // Credentials
-    define("SERVER_NAME", "db");
+    if (!defined("SERVER_NAME")) {
+        define("SERVER_NAME", "db");
+    }
     if (
         !array_key_exists("MARIADB_USER", $_ENV) ||
         !array_key_exists("MARIADB_PASSWORD", $_ENV) ||
@@ -51,6 +53,102 @@ function ingest_ohlcv(OHLCV $ohlcv, string $symbol)
     // Close the connection
     $conn = null;
     return 0;
+}
+
+function safe_ingest_ohlcv(OHLCV $ohlcv, string $symbol): bool
+{
+    $conn = create_sql_connection();
+    if (!is_a($conn, "PDO")) {
+        return false;
+    }
+    
+    // Use INSERT IGNORE to handle duplicates gracefully
+    $sql = "INSERT IGNORE INTO daily_ohlcv (symbol, date, open, high, low, close, volume)
+            VALUES (:symbol, :date, :open, :high, :low, :close, :volume)";
+    
+    try {
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([
+            'symbol' => $symbol,
+            'date' => $ohlcv->date,
+            'open' => $ohlcv->open,
+            'high' => $ohlcv->high,
+            'low' => $ohlcv->low,
+            'close' => $ohlcv->close,
+            'volume' => $ohlcv->volume
+        ]);
+        $conn = null;
+        return true;
+    } catch (PDOException $e) {
+        $conn = null;
+        return false;
+    }
+}
+
+function ingest_ohlcv_array(array $ohlcv_array, string $symbol): int
+{
+    $ingested_count = 0;
+    
+    foreach ($ohlcv_array as $ohlcv) {
+        if (safe_ingest_ohlcv($ohlcv, $symbol)) {
+            $ingested_count++;
+        }
+    }
+    
+    return $ingested_count;
+}
+
+function fetch_ohlcv_data(string $symbol): ?array
+{
+    $conn = create_sql_connection();
+    if (!is_a($conn, "PDO")) {
+        return null;
+    }
+    
+    $sql = "SELECT date, open, high, low, close, volume 
+            FROM daily_ohlcv 
+            WHERE symbol = :symbol 
+            ORDER BY date ASC";
+    
+    try {
+        $stmt = $conn->prepare($sql);
+        $stmt->execute(['symbol' => $symbol]);
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $conn = null;
+        return $results;
+    } catch (PDOException $e) {
+        $conn = null;
+        return null;
+    }
+}
+
+function fetch_from_alphavantage(string $symbol): ?string
+{
+    // Make sure the API key is present as an environment variable
+    if (!array_key_exists("ALPHA_VANTAGE_API_KEY", $_ENV)) {
+        return null;
+    }
+    
+    $base_url = "https://www.alphavantage.co/query?";
+    
+    // Build parameter string
+    $parameters = [
+        "function" => "TIME_SERIES_DAILY",
+        "symbol" => $symbol,
+        "outputsize" => "compact",
+        "apikey" => $_ENV["ALPHA_VANTAGE_API_KEY"],
+    ];
+    
+    // Build final GET Request url
+    $url = $base_url . http_build_query($parameters);
+    
+    // Make the request
+    $response = @file_get_contents($url);
+    if ($response === false) {
+        return null;
+    }
+    
+    return $response;
 }
 
 ?>
