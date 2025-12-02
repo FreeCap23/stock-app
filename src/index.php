@@ -5,11 +5,16 @@ require_once "parse_json.php";
 $symbol = isset($_GET["symbol"]) ? htmlspecialchars($_GET["symbol"]) : "";
 $data = null;
 $error_message = null;
+$chart_dates = [];
+$chart_opens = [];
+$chart_highs = [];
+$chart_lows = [];
+$chart_closes = [];
 
 if ($symbol) {
     // First, try to fetch from database
     $data = fetch_ohlcv_data($symbol);
-    
+
     // If no data found, fetch from Alpha Vantage and ingest
     if ($data !== null && empty($data)) {
         $api_response = fetch_from_alphavantage($symbol);
@@ -35,7 +40,7 @@ if ($symbol) {
 <html>
     <head>
         <title>Stock App - Candlestick Chart</title>
-        <script src="https://cdn.canvasjs.com/canvasjs.min.js"></script>
+        <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
         <style>
             body {
                 font-family: Arial, sans-serif;
@@ -118,41 +123,43 @@ if ($symbol) {
                         No data found for symbol "<?php echo $symbol; ?>". Please check the symbol and try again.
                     </div>
                 <?php else: ?>
+                    <?php
+                    foreach ($data as $row) {
+                        $chart_dates[] = $row['date'];
+                        $chart_opens[] = floatval($row['open']);
+                        $chart_highs[] = floatval($row['high']);
+                        $chart_lows[] = floatval($row['low']);
+                        $chart_closes[] = floatval($row['close']);
+                    }
+                    ?>
                     <div id="chartContainer" class="chart-container"></div>
                     <script>
                         window.onload = function () {
-                            var chart = new CanvasJS.Chart("chartContainer", {
-                                animationEnabled: true,
-                                theme: "light2",
-                                title: {
-                                    text: "<?php echo $symbol; ?> - Daily Candlestick Chart"
+                            const trace = {
+                                x: <?php echo json_encode($chart_dates); ?>.map(date => new Date(date)),
+                                open: <?php echo json_encode($chart_opens); ?>,
+                                high: <?php echo json_encode($chart_highs); ?>,
+                                low: <?php echo json_encode($chart_lows); ?>,
+                                close: <?php echo json_encode($chart_closes); ?>,
+                                type: "candlestick",
+                                increasing: { line: { color: "#2e7d32" } },
+                                decreasing: { line: { color: "#c62828" } }
+                            };
+                            const layout = {
+                                title: "<?php echo $symbol; ?> - Daily Candlestick Chart",
+                                xaxis: {
+                                    title: "Date",
+                                    type: "date",
+                                    rangeslider: { visible: true },
+                                    tickangle: -45
                                 },
-                                axisX: {
-                                    valueFormatString: "MMM DD",
-                                    labelAngle: -45
+                                yaxis: {
+                                    title: "Price (USD)",
+                                    tickprefix: "$"
                                 },
-                                axisY: {
-                                    title: "Price",
-                                    prefix: "$"
-                                },
-                                data: [{
-                                    type: "candlestick",
-                                    yValueFormatString: "$##0.00",
-                                    dataPoints: [
-                                        <?php
-                                        foreach ($data as $row) {
-                                            $date = strtotime($row['date']) * 1000; // Convert to milliseconds
-                                            echo "{ x: new Date($date), y: [" . 
-                                                 floatval($row['open']) . ", " . 
-                                                 floatval($row['high']) . ", " . 
-                                                 floatval($row['low']) . ", " . 
-                                                 floatval($row['close']) . "] },\n";
-                                        }
-                                        ?>
-                                    ]
-                                }]
-                            });
-                            chart.render();
+                                margin: { t: 50, r: 30, b: 50, l: 60 }
+                            };
+                            Plotly.newPlot("chartContainer", [trace], layout, { responsive: true });
                         }
                     </script>
                 <?php endif; ?>
