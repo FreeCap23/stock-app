@@ -155,7 +155,8 @@ if ($symbol) {
                                 },
                                 yaxis: {
                                     title: "Price (USD)",
-                                    tickprefix: "$"
+                                    tickprefix: "$",
+                                    side: "right"
                                 },
                                 margin: { t: 50, r: 30, b: 50, l: 60 }
                             };
