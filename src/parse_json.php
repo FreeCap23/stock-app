@@ -8,10 +8,12 @@ enum Timescale
 class Metadata
 {
     public Timescale $type; // The type of data received, e.g. daily, weekly, hourly, etc.
-    public string $symbol;
-    public string $update_time;
-    public string $size;
-    public string $timezone;
+    public string $ticker; // The stock ticker symbol
+    public string $name; // Company name
+    public string $description; // Company description
+    public string $startDate; // Earliest available price date
+    public string $endDate; // Latest available price date
+    public string $exchangeCode; // Exchange code (e.g., NASDAQ, NYSE)
 }
 
 class OHLCV
