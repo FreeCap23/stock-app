@@ -14,13 +14,13 @@ For individuals, the free plan provides:
 Tiingo's REST endpoint can provide **JSON** and **CSV** formatted data. The **CSV** data is ~2x smaller than the **JSON** data.
 
 ### Example output
-[JSON Daily OHLCV between Jan 1st 2012 & Jan 1st 2016](https://api.tiingo.com/tiingo/daily/AAPL/prices?token=82a1127ac6f54383240d583d22763e87647fb58a&startDate=2012-1-1&endDate=2016-1-1) 260 KB
+[JSON Daily OHLCV between Jan 1st 2012 & Jan 1st 2016](https://api.tiingo.com/tiingo/daily/AAPL/prices?startDate=2012-1-1&endDate=2016-1-1&token=TOKEN_HERE) 260 KB
 
-[JSON Daily OHLCV between Jan 1st 2012 & Present](https://api.tiingo.com/tiingo/daily/AAPL/prices?token=82a1127ac6f54383240d583d22763e87647fb58a&startDate=2012-1-1) 911 KB
+[JSON Daily OHLCV between Jan 1st 2012 & Present](https://api.tiingo.com/tiingo/daily/AAPL/prices?startDate=2012-1-1&token=TOKEN_HERE) 911 KB
 
-[CSV Daily OHLCV between Jan 1st 2012 & Jan 1st 2016](https://api.tiingo.com/tiingo/daily/AAPL/prices?token=82a1127ac6f54383240d583d22763e87647fb58a&startDate=2012-1-1&endDate=2016-1-1&format=csv) 134 KB
+[CSV Daily OHLCV between Jan 1st 2012 & Jan 1st 2016](https://api.tiingo.com/tiingo/daily/AAPL/prices?startDate=2012-1-1&endDate=2016-1-1&format=csv&token=TOKEN_HERE) 134 KB
 
-[CSV Daily OHLCV between Jan 1st 2012 & Present](https://api.tiingo.com/tiingo/daily/AAPL/prices?token=82a1127ac6f54383240d583d22763e87647fb58a&startDate=2012-1-1&format=csv&format=csv) 464 KB
+[CSV Daily OHLCV between Jan 1st 2012 & Present](https://api.tiingo.com/tiingo/daily/AAPL/prices?startDate=2012-1-1&format=csv&format=csv&token=TOKEN_HERE) 464 KB
 
 ------
 
