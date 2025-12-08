@@ -1,5 +1,7 @@
 <?php
+
 use PHPUnit\Framework\TestCase;
+
 require_once "parse_json.php";
 
 final class parse_json_test extends TestCase
@@ -134,5 +136,3 @@ final class parse_json_test extends TestCase
         $this->assertCount(0, $converted);
     }
 }
-
-?>

@@ -1,4 +1,5 @@
 <?php
+
 $serverName = "db";
 $databaseName = "root_db";
 
@@ -34,4 +35,3 @@ try {
 }
 
 echo "Detected database: {$dbVersion}<br />";
-?>

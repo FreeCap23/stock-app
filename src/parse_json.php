@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 enum Timescale
 {
@@ -41,7 +43,7 @@ Supports a json in this format:
 function json_to_metadata_object(string $json_string): Metadata
 {
     $array = json_decode($json_string, true);
-    
+
     if ($array === null || !isset($array["ticker"])) {
         throw new InvalidArgumentException("Invalid Tiingo meta JSON format");
     }
@@ -74,14 +76,14 @@ Supports a json in this format:
 function json_to_ohlcv_object(string $json_string): OHLCV
 {
     $array = json_decode($json_string, true);
-    
+
     if ($array === null || !is_array($array) || empty($array)) {
         throw new InvalidArgumentException("Invalid Tiingo daily JSON format or empty array");
     }
-    
+
     // Get the first element
     $day_data = $array[0];
-    
+
     // Extract date from ISO timestamp (2025-10-17T00:00:00.000Z -> 2025-10-17)
     $date_string = $day_data["date"];
     $date = substr($date_string, 0, 10); // Extract YYYY-MM-DD from ISO format
@@ -123,44 +125,44 @@ Returns an empty array if the response is valid but contains no data.
 function json_to_ohlcv_array(string $json_string): ?array
 {
     $array = json_decode($json_string, true);
-    
+
     // Check if JSON decode failed
     if ($array === null) {
         return null;
     }
-    
+
     // Check for Tiingo API errors (usually has a "detail" field)
     if (isset($array["detail"])) {
         return null;
     }
-    
+
     // Check if we have an array (Tiingo returns an array directly)
     if (!is_array($array)) {
         return null;
     }
-    
+
     // If it's an associative array (error object) without numeric keys, it's an error
     if (!empty($array) && !isset($array[0]) && !array_key_exists(0, $array)) {
         return null;
     }
-    
+
     // Empty array is valid (no data available)
     if (empty($array)) {
         return [];
     }
-    
+
     $ohlcv_array = [];
-    
+
     // Parse each day's data
     foreach ($array as $day_data) {
         if (!isset($day_data["date"]) || !isset($day_data["open"])) {
             continue; // Skip invalid entries
         }
-        
+
         // Extract date from ISO timestamp (2025-10-17T00:00:00.000Z -> 2025-10-17)
         $date_string = $day_data["date"];
         $date = substr($date_string, 0, 10); // Extract YYYY-MM-DD from ISO format
-        
+
         $ohlcv = new OHLCV();
         $ohlcv->date = $date;
         $ohlcv->open = (string)$day_data["open"];
@@ -168,10 +170,9 @@ function json_to_ohlcv_array(string $json_string): ?array
         $ohlcv->low = (string)$day_data["low"];
         $ohlcv->close = (string)$day_data["close"];
         $ohlcv->volume = (string)$day_data["volume"];
-        
+
         $ohlcv_array[] = $ohlcv;
     }
-    
+
     return $ohlcv_array;
 }
-?>

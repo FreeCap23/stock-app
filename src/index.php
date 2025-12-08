@@ -17,7 +17,10 @@ if ($symbol) {
 
     // If no data found, fetch from Tiingo and ingest
     if ($data !== null && empty($data)) {
-        $api_response = fetch_from_tiingo($symbol);
+        $time_format = "Y-m-d";
+        $now = DateTime::createFromFormat($time_format, date($time_format));
+        $start_date = date_sub($now, DateInterval::createFromDateString("12 months")); // Get 3 months of data for now
+        $api_response = fetch_from_tiingo($symbol, date_format($start_date, $time_format), null);
         if ($api_response !== null) {
             $ohlcv_array = json_to_ohlcv_array($api_response);
             if ($ohlcv_array !== null && !empty($ohlcv_array)) {
@@ -29,7 +32,8 @@ if ($symbol) {
                     $error_message = "Failed to ingest data into database.";
                 }
             } else {
-                $error_message = "Failed to parse data from Tiingo API. The symbol may be invalid or the API may be rate-limited.";
+                $error_message = "Failed to parse data from Tiingo API.
+                The symbol may be invalid or the API may be rate-limited.";
             }
         } else {
             $error_message = "Failed to fetch data from Tiingo API. Please check your API token and connection.";
@@ -109,20 +113,20 @@ if ($symbol) {
                 </form>
             </div>
 
-            <?php if ($symbol): ?>
-                <?php if ($error_message): ?>
+            <?php if ($symbol) : ?>
+                <?php if ($error_message) : ?>
                     <div class="error-message">
                         <?php echo htmlspecialchars($error_message); ?>
                     </div>
-                <?php elseif ($data === null): ?>
+                <?php elseif ($data === null) : ?>
                     <div class="error-message">
                         Error fetching data. Please check your database connection.
                     </div>
-                <?php elseif (empty($data)): ?>
+                <?php elseif (empty($data)) : ?>
                     <div class="error-message">
                         No data found for symbol "<?php echo $symbol; ?>". Please check the symbol and try again.
                     </div>
-                <?php else: ?>
+                <?php else : ?>
                     <?php
                     foreach ($data as $row) {
                         $chart_dates[] = $row['date'];

@@ -1,5 +1,7 @@
 <?php
+
 use PHPUnit\Framework\TestCase;
+
 require_once "ingest_data.php";
 
 function cleanupTestRow(string $date, string $symbol)
@@ -124,5 +126,3 @@ final class ingest_data_test extends TestCase
         cleanupTestRow($ohlcv->date, $symbol);
     }
 }
-
-?>
