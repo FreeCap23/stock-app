@@ -33,29 +33,7 @@ function create_sql_connection()
     }
 }
 
-function ingest_ohlcv(OHLCV $ohlcv, string $symbol)
-{
-    $conn = create_sql_connection();
-    if (!is_a($conn, "PDO")) {
-        die("Failed to create database connection! $conn");
-    }
-    // Prepare SQL query
-    $sql = "INSERT INTO daily_ohlcv (symbol, date, open, high, low, close, volume)
-    VALUES (\"$symbol\", \"$ohlcv->date\", $ohlcv->open, $ohlcv->high, $ohlcv->low, $ohlcv->close, $ohlcv->volume);";
-
-    try {
-        // Insert values into table
-        $conn->exec($sql);
-    } catch (PDOException $e) {
-        die("SQL Query $sql failed!\n$e->getMessage()");
-    }
-
-    // Close the connection
-    $conn = null;
-    return 0;
-}
-
-function safe_ingest_ohlcv(OHLCV $ohlcv, string $symbol): bool
+function ingest_ohlcv(OHLCV $ohlcv, string $symbol): bool
 {
     $conn = create_sql_connection();
     if (!is_a($conn, "PDO")) {
@@ -90,7 +68,7 @@ function ingest_ohlcv_array(array $ohlcv_array, string $symbol): int
     $ingested_count = 0;
 
     foreach ($ohlcv_array as $ohlcv) {
-        if (safe_ingest_ohlcv($ohlcv, $symbol)) {
+        if (ingest_ohlcv($ohlcv, $symbol)) {
             $ingested_count++;
         }
     }

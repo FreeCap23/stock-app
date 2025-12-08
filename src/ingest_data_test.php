@@ -40,7 +40,7 @@ final class ingest_data_test extends TestCase
         cleanupTestRow($ohlcv->date, $symbol);
     }
 
-    public function testSafeIngestOhlcv()
+    public function testIngestOhlcv()
     {
         $ohlcv = new OHLCV();
         $ohlcv->date = "2025-10-18";
@@ -52,10 +52,10 @@ final class ingest_data_test extends TestCase
         $symbol = "TEST2";
 
         // First insert should succeed
-        $this->assertTrue(safe_ingest_ohlcv($ohlcv, $symbol));
+        $this->assertTrue(ingest_ohlcv($ohlcv, $symbol));
 
         // Second insert (duplicate) should not fail but return true (INSERT IGNORE)
-        $this->assertTrue(safe_ingest_ohlcv($ohlcv, $symbol));
+        $this->assertTrue(ingest_ohlcv($ohlcv, $symbol));
 
         cleanupTestRow($ohlcv->date, $symbol);
     }
@@ -100,7 +100,7 @@ final class ingest_data_test extends TestCase
         $ohlcv->volume = "49146966";
         $symbol = "TEST4";
 
-        safe_ingest_ohlcv($ohlcv, $symbol);
+        ingest_ohlcv($ohlcv, $symbol);
 
         // Fetch the data
         $data = fetch_ohlcv_data($symbol);
