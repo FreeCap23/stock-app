@@ -27,126 +27,147 @@ class OHLCV
 }
 
 /*
+Parses Tiingo meta endpoint JSON response.
 Supports a json in this format:
 {
-    "Meta Data": {
-        "1. Information": "Daily Prices (open, high, low, close) and Volumes",
-        "2. Symbol": "AAPL",
-        "3. Last Refreshed": "2025-10-17",
-        "4. Output Size": "Compact",
-        "5. Time Zone": "US/Eastern"
-    }
+    "ticker": "AAPL",
+    "name": "Apple Inc",
+    "description": "Apple Inc. (Apple) designs...",
+    "startDate": "1980-12-12",
+    "endDate": "2025-12-05",
+    "exchangeCode": "NASDAQ"
 }
-
-Or without the enclosing "Meta Data" tag
 */
 function json_to_metadata_object(string $json_string): Metadata
 {
     $array = json_decode($json_string, true);
-    $array = $array["Meta Data"];
+    
+    if ($array === null || !isset($array["ticker"])) {
+        throw new InvalidArgumentException("Invalid Tiingo meta JSON format");
+    }
 
     $metadata = new Metadata();
-    try {
-        $metadata->type = match ($array["1. Information"]) {
-            "Daily Prices (open, high, low, close) and Volumes"
-                => Timescale::Daily,
-        };
-    } catch (\UnhandledMatchError $e) {
-        var_dump($e);
-    }
-    $metadata->symbol = $array["2. Symbol"];
-    $metadata->update_time = $array["3. Last Refreshed"];
-    $metadata->size = $array["4. Output Size"];
-    $metadata->timezone = $array["5. Time Zone"];
+    $metadata->type = Timescale::Daily; // Tiingo daily endpoint always returns daily data
+    $metadata->ticker = $array["ticker"];
+    $metadata->name = $array["name"] ?? "";
+    $metadata->description = $array["description"] ?? "";
+    $metadata->startDate = $array["startDate"] ?? "";
+    $metadata->endDate = $array["endDate"] ?? "";
+    $metadata->exchangeCode = $array["exchangeCode"] ?? "";
 
     return $metadata;
 }
 
 /*
+Parses Tiingo daily endpoint JSON response (array format) and returns the first OHLCV object.
 Supports a json in this format:
-{
-    "2025-10-17": {
-        "1. open": "248.0200",
-        "2. high": "253.3800",
-        "3. low": "247.2700",
-        "4. close": "252.2900",
-        "5. volume": "49146961"
-    }
-}
+[{
+    "date": "2025-10-17T00:00:00.000Z",
+    "close": 252.29,
+    "high": 253.38,
+    "low": 247.27,
+    "open": 248.02,
+    "volume": 49146961,
+    ...
+}]
 */
 function json_to_ohlcv_object(string $json_string): OHLCV
 {
     $array = json_decode($json_string, true);
-    $date = array_key_first($array);
-    $array = $array[$date];
+    
+    if ($array === null || !is_array($array) || empty($array)) {
+        throw new InvalidArgumentException("Invalid Tiingo daily JSON format or empty array");
+    }
+    
+    // Get the first element
+    $day_data = $array[0];
+    
+    // Extract date from ISO timestamp (2025-10-17T00:00:00.000Z -> 2025-10-17)
+    $date_string = $day_data["date"];
+    $date = substr($date_string, 0, 10); // Extract YYYY-MM-DD from ISO format
 
     $ohlcv = new OHLCV();
     $ohlcv->date = $date;
-    $ohlcv->open = $array["1. open"];
-    $ohlcv->high = $array["2. high"];
-    $ohlcv->low = $array["3. low"];
-    $ohlcv->close = $array["4. close"];
-    $ohlcv->volume = $array["5. volume"];
+    $ohlcv->open = (string)$day_data["open"];
+    $ohlcv->high = (string)$day_data["high"];
+    $ohlcv->low = (string)$day_data["low"];
+    $ohlcv->close = (string)$day_data["close"];
+    $ohlcv->volume = (string)$day_data["volume"];
 
     return $ohlcv;
 }
 
 /*
-Parses a full Alpha Vantage TIME_SERIES_DAILY response and returns an array of OHLCV objects.
-Supports a json in this format:
-{
-    "Meta Data": {
-        "1. Information": "Daily Prices (open, high, low, close) and Volumes",
-        "2. Symbol": "AAPL",
-        "3. Last Refreshed": "2025-10-17",
-        "4. Output Size": "Compact",
-        "5. Time Zone": "US/Eastern"
-    },
-    "Time Series (Daily)": {
-        "2025-10-17": {
-            "1. open": "248.0200",
-            "2. high": "253.3800",
-            "3. low": "247.2700",
-            "4. close": "252.2900",
-            "5. volume": "49146961"
-        },
-        "2025-10-16": {
-            "1. open": "247.0200",
-            "2. high": "252.3800",
-            "3. low": "246.2700",
-            "4. close": "251.2900",
-            "5. volume": "49146962"
-        }
-    }
-}
+Parses a full Tiingo daily endpoint response and returns an array of OHLCV objects.
+Supports a json in this format (array of daily data objects):
+[{
+    "date": "2025-10-17T00:00:00.000Z",
+    "close": 252.29,
+    "high": 253.38,
+    "low": 247.27,
+    "open": 248.02,
+    "volume": 49146961,
+    ...
+}, {
+    "date": "2025-10-16T00:00:00.000Z",
+    "close": 251.29,
+    "high": 252.38,
+    "low": 246.27,
+    "open": 247.02,
+    "volume": 49146962,
+    ...
+}]
 Returns null if the response contains an error or is invalid.
+Returns an empty array if the response is valid but contains no data.
 */
 function json_to_ohlcv_array(string $json_string): ?array
 {
     $array = json_decode($json_string, true);
     
-    // Check for API errors
-    if (isset($array["Error Message"]) || isset($array["Note"])) {
+    // Check if JSON decode failed
+    if ($array === null) {
         return null;
     }
     
-    // Check if we have the time series data
-    if (!isset($array["Time Series (Daily)"])) {
+    // Check for Tiingo API errors (usually has a "detail" field)
+    if (isset($array["detail"])) {
         return null;
     }
     
-    $time_series = $array["Time Series (Daily)"];
+    // Check if we have an array (Tiingo returns an array directly)
+    if (!is_array($array)) {
+        return null;
+    }
+    
+    // If it's an associative array (error object) without numeric keys, it's an error
+    if (!empty($array) && !isset($array[0]) && !array_key_exists(0, $array)) {
+        return null;
+    }
+    
+    // Empty array is valid (no data available)
+    if (empty($array)) {
+        return [];
+    }
+    
     $ohlcv_array = [];
     
     // Parse each day's data
-    foreach ($time_series as $date => $day_data) {
+    foreach ($array as $day_data) {
+        if (!isset($day_data["date"]) || !isset($day_data["open"])) {
+            continue; // Skip invalid entries
+        }
+        
+        // Extract date from ISO timestamp (2025-10-17T00:00:00.000Z -> 2025-10-17)
+        $date_string = $day_data["date"];
+        $date = substr($date_string, 0, 10); // Extract YYYY-MM-DD from ISO format
+        
         $ohlcv = new OHLCV();
         $ohlcv->date = $date;
-        $ohlcv->open = $day_data["1. open"];
-        $ohlcv->high = $day_data["2. high"];
-        $ohlcv->low = $day_data["3. low"];
-        $ohlcv->close = $day_data["4. close"];
-        $ohlcv->volume = $day_data["5. volume"];
+        $ohlcv->open = (string)$day_data["open"];
+        $ohlcv->high = (string)$day_data["high"];
+        $ohlcv->low = (string)$day_data["low"];
+        $ohlcv->close = (string)$day_data["close"];
+        $ohlcv->volume = (string)$day_data["volume"];
         
         $ohlcv_array[] = $ohlcv;
     }

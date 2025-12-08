@@ -122,28 +122,34 @@ function fetch_ohlcv_data(string $symbol): ?array
     }
 }
 
-function fetch_from_alphavantage(string $symbol): ?string
+function fetch_from_tiingo(string $symbol): ?string
 {
-    // Make sure the API key is present as an environment variable
-    if (!array_key_exists("ALPHA_VANTAGE_API_KEY", $_ENV)) {
+    // Make sure the API token is present as an environment variable
+    if (!array_key_exists("TIINGO_API_TOKEN", $_ENV)) {
         return null;
     }
     
-    $base_url = "https://www.alphavantage.co/query?";
+    $base_url = "https://api.tiingo.com/tiingo/daily/" . urlencode($symbol) . "/prices";
     
     // Build parameter string
     $parameters = [
-        "function" => "TIME_SERIES_DAILY",
-        "symbol" => $symbol,
-        "outputsize" => "compact",
-        "apikey" => $_ENV["ALPHA_VANTAGE_API_KEY"],
+        "token" => $_ENV["TIINGO_API_TOKEN"],
+        "format" => "json",
     ];
     
     // Build final GET Request url
-    $url = $base_url . http_build_query($parameters);
+    $url = $base_url . "?" . http_build_query($parameters);
+    
+    // Create context with headers for the API request
+    $context = stream_context_create([
+        "http" => [
+            "method" => "GET",
+            "header" => "Content-Type: application/json\r\n",
+        ],
+    ]);
     
     // Make the request
-    $response = @file_get_contents($url);
+    $response = @file_get_contents($url, false, $context);
     if ($response === false) {
         return null;
     }

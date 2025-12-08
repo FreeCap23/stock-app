@@ -15,9 +15,9 @@ if ($symbol) {
     // First, try to fetch from database
     $data = fetch_ohlcv_data($symbol);
 
-    // If no data found, fetch from Alpha Vantage and ingest
+    // If no data found, fetch from Tiingo and ingest
     if ($data !== null && empty($data)) {
-        $api_response = fetch_from_alphavantage($symbol);
+        $api_response = fetch_from_tiingo($symbol);
         if ($api_response !== null) {
             $ohlcv_array = json_to_ohlcv_array($api_response);
             if ($ohlcv_array !== null && !empty($ohlcv_array)) {
@@ -29,10 +29,10 @@ if ($symbol) {
                     $error_message = "Failed to ingest data into database.";
                 }
             } else {
-                $error_message = "Failed to parse data from Alpha Vantage API. The symbol may be invalid or the API may be rate-limited.";
+                $error_message = "Failed to parse data from Tiingo API. The symbol may be invalid or the API may be rate-limited.";
             }
         } else {
-            $error_message = "Failed to fetch data from Alpha Vantage API. Please check your API key and connection.";
+            $error_message = "Failed to fetch data from Tiingo API. Please check your API token and connection.";
         }
     }
 }
