@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use PHPUnit\Framework\TestCase;
 
 require_once "ingest_data.php";
@@ -28,14 +30,14 @@ final class ingest_data_test extends TestCase
     {
         $ohlcv = new OHLCV();
         $ohlcv->date = "2025-10-17";
-        $ohlcv->open = "248.0200";
-        $ohlcv->high = "253.3800";
-        $ohlcv->low = "247.2700";
-        $ohlcv->close = "252.2900";
+        $ohlcv->open = "248.020";
+        $ohlcv->high = "253.380";
+        $ohlcv->low = "247.270";
+        $ohlcv->close = "252.290";
         $ohlcv->volume = "49146961";
         $symbol = "TEST";
 
-        $this->assertSame(ingest_ohlcv($ohlcv, $symbol), 0);
+        $this->assertSame(ingest_ohlcv($ohlcv, $symbol), true);
 
         cleanupTestRow($ohlcv->date, $symbol);
     }
@@ -44,10 +46,10 @@ final class ingest_data_test extends TestCase
     {
         $ohlcv = new OHLCV();
         $ohlcv->date = "2025-10-18";
-        $ohlcv->open = "249.0200";
-        $ohlcv->high = "254.3800";
-        $ohlcv->low = "248.2700";
-        $ohlcv->close = "253.2900";
+        $ohlcv->open = "249.020";
+        $ohlcv->high = "254.380";
+        $ohlcv->low = "248.270";
+        $ohlcv->close = "253.290";
         $ohlcv->volume = "49146963";
         $symbol = "TEST2";
 
@@ -64,18 +66,18 @@ final class ingest_data_test extends TestCase
     {
         $ohlcv1 = new OHLCV();
         $ohlcv1->date = "2025-10-19";
-        $ohlcv1->open = "250.0200";
-        $ohlcv1->high = "255.3800";
-        $ohlcv1->low = "249.2700";
-        $ohlcv1->close = "254.2900";
+        $ohlcv1->open = "250.020";
+        $ohlcv1->high = "255.380";
+        $ohlcv1->low = "249.270";
+        $ohlcv1->close = "254.290";
         $ohlcv1->volume = "49146964";
 
         $ohlcv2 = new OHLCV();
         $ohlcv2->date = "2025-10-20";
-        $ohlcv2->open = "251.0200";
-        $ohlcv2->high = "256.3800";
-        $ohlcv2->low = "250.2700";
-        $ohlcv2->close = "255.2900";
+        $ohlcv2->open = "251.020";
+        $ohlcv2->high = "256.380";
+        $ohlcv2->low = "250.270";
+        $ohlcv2->close = "255.290";
         $ohlcv2->volume = "49146965";
 
         $symbol = "TEST3";
@@ -93,10 +95,10 @@ final class ingest_data_test extends TestCase
         // First insert some test data
         $ohlcv = new OHLCV();
         $ohlcv->date = "2025-10-21";
-        $ohlcv->open = "252.0200";
-        $ohlcv->high = "257.3800";
-        $ohlcv->low = "251.2700";
-        $ohlcv->close = "256.2900";
+        $ohlcv->open = "252.020";
+        $ohlcv->high = "257.380";
+        $ohlcv->low = "251.270";
+        $ohlcv->close = "256.290";
         $ohlcv->volume = "49146966";
         $symbol = "TEST4";
 
