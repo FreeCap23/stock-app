@@ -26,7 +26,7 @@ function cleanupTestRow(string $date, string $symbol)
 
 final class ingest_data_test extends TestCase
 {
-    public function testInsertDailyOhlcv()
+    public function testInsertDailyOhlcv(): void
     {
         $ohlcv = new OHLCV();
         $ohlcv->date = "2025-10-17";
@@ -42,7 +42,7 @@ final class ingest_data_test extends TestCase
         cleanupTestRow($ohlcv->date, $symbol);
     }
 
-    public function testIngestOhlcv()
+    public function testIngestOhlcv(): void
     {
         $ohlcv = new OHLCV();
         $ohlcv->date = "2025-10-18";
@@ -62,7 +62,7 @@ final class ingest_data_test extends TestCase
         cleanupTestRow($ohlcv->date, $symbol);
     }
 
-    public function testIngestOhlcvArray()
+    public function testIngestOhlcvArray(): void
     {
         $ohlcv1 = new OHLCV();
         $ohlcv1->date = "2025-10-19";
@@ -90,7 +90,7 @@ final class ingest_data_test extends TestCase
         cleanupTestRow($ohlcv2->date, $symbol);
     }
 
-    public function testFetchOhlcvData()
+    public function testFetchOhlcvData(): void
     {
         // First insert some test data
         $ohlcv = new OHLCV();
