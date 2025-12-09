@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-require_once "parse_json.php";
-
 function create_sql_connection()
 {
     // Credentials
@@ -11,9 +9,9 @@ function create_sql_connection()
         define("SERVER_NAME", "db");
     }
     if (
-        !array_key_exists("MARIADB_USER", $_ENV) ||
-        !array_key_exists("MARIADB_PASSWORD", $_ENV) ||
-        !array_key_exists("MARIADB_DATABASE", $_ENV)
+        !array_key_exists("MARIADB_USER", $_ENV)
+        || !array_key_exists("MARIADB_PASSWORD", $_ENV)
+        || !array_key_exists("MARIADB_DATABASE", $_ENV)
     ) {
         return "Database credentials not found!";
     }
@@ -53,7 +51,7 @@ function ingest_ohlcv(OHLCV $ohlcv, string $symbol): bool
             'high' => $ohlcv->high,
             'low' => $ohlcv->low,
             'close' => $ohlcv->close,
-            'volume' => $ohlcv->volume
+            'volume' => $ohlcv->volume,
         ]);
         $conn = null;
         return true;
@@ -118,7 +116,7 @@ function fetch_from_tiingo(string $symbol, string $start_date, ?string $end_date
         "token" => $_ENV["TIINGO_API_TOKEN"],
         "format" => "json",
         "startDate" => $start_date,
-        "endDate" => $end_date
+        "endDate" => $end_date,
     ];
 
     // Build final GET Request url

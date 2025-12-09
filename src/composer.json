@@ -1,7 +1,12 @@
 {
     "autoload": {
         "classmap": [
-            "src/"
+            "./"
+        ],
+
+        "files": [
+            "parse_json.php",
+            "ingest_data.php"
         ]
     },
     "require-dev": {

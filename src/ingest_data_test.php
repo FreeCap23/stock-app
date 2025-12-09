@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 
-require_once "ingest_data.php";
-
 function cleanupTestRow(string $date, string $symbol)
 {
     $conn = create_sql_connection();
