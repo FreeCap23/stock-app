@@ -44,8 +44,11 @@ function json_to_metadata_object(string $json_string): Metadata
 {
     $array = json_decode($json_string, true);
 
-    if ($array === null || !isset($array["ticker"])) {
-        throw new InvalidArgumentException("Invalid Tiingo meta JSON format");
+    if ($array === null) {
+        throw new InvalidArgumentException("Invalid JSON string: $json_string \njson_decode returned a null array");
+    }
+    if (!isset($array["ticker"])) {
+        throw new InvalidArgumentException("Invalid Tiingo meta JSON format. ticker key not found");
     }
 
     $metadata = new Metadata();
@@ -58,45 +61,6 @@ function json_to_metadata_object(string $json_string): Metadata
     $metadata->exchangeCode = $array["exchangeCode"] ?? "";
 
     return $metadata;
-}
-
-/*
-Parses Tiingo daily endpoint JSON response (array format) and returns the first OHLCV object.
-Supports a json in this format:
-[{
-    "date": "2025-10-17T00:00:00.000Z",
-    "close": 252.29,
-    "high": 253.38,
-    "low": 247.27,
-    "open": 248.02,
-    "volume": 49146961,
-    ...
-}]
-*/
-function json_to_ohlcv_object(string $json_string): OHLCV
-{
-    $array = json_decode($json_string, true);
-
-    if ($array === null || !is_array($array) || empty($array)) {
-        throw new InvalidArgumentException("Invalid Tiingo daily JSON format or empty array");
-    }
-
-    // Get the first element
-    $day_data = $array[0];
-
-    // Extract date from ISO timestamp (2025-10-17T00:00:00.000Z -> 2025-10-17)
-    $date_string = $day_data["date"];
-    $date = substr($date_string, 0, 10); // Extract YYYY-MM-DD from ISO format
-
-    $ohlcv = new OHLCV();
-    $ohlcv->date = $date;
-    $ohlcv->open = (string) $day_data["open"];
-    $ohlcv->high = (string) $day_data["high"];
-    $ohlcv->low = (string) $day_data["low"];
-    $ohlcv->close = (string) $day_data["close"];
-    $ohlcv->volume = (string) $day_data["volume"];
-
-    return $ohlcv;
 }
 
 /*
