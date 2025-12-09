@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 
-require_once "parse_json.php";
-
 final class parse_json_test extends TestCase
 {
     private const META_JSON_RESPONSE = '{
