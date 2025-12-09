@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 $serverName = "db";
 $databaseName = "root_db";
 
@@ -27,9 +29,9 @@ echo "Database OK<br />";
 try {
     $dbVersion = $pdo->query("SELECT VERSION()")->fetch()["VERSION()"];
 } catch (Exception $ex) {
-    echo "Could not connect to the database version info: " .
-        $ex->getMessage() .
-        "<br />";
+    echo "Could not connect to the database version info: "
+        . $ex->getMessage()
+        . "<br />";
     error_log($ex->getMessage());
     die();
 }

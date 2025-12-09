@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 require_once "ingest_data.php";
 require_once "parse_json.php";
 
