@@ -90,11 +90,11 @@ function json_to_ohlcv_object(string $json_string): OHLCV
 
     $ohlcv = new OHLCV();
     $ohlcv->date = $date;
-    $ohlcv->open = (string)$day_data["open"];
-    $ohlcv->high = (string)$day_data["high"];
-    $ohlcv->low = (string)$day_data["low"];
-    $ohlcv->close = (string)$day_data["close"];
-    $ohlcv->volume = (string)$day_data["volume"];
+    $ohlcv->open = (string) $day_data["open"];
+    $ohlcv->high = (string) $day_data["high"];
+    $ohlcv->low = (string) $day_data["low"];
+    $ohlcv->close = (string) $day_data["close"];
+    $ohlcv->volume = (string) $day_data["volume"];
 
     return $ohlcv;
 }
@@ -165,11 +165,11 @@ function json_to_ohlcv_array(string $json_string): ?array
 
         $ohlcv = new OHLCV();
         $ohlcv->date = $date;
-        $ohlcv->open = (string)$day_data["open"];
-        $ohlcv->high = (string)$day_data["high"];
-        $ohlcv->low = (string)$day_data["low"];
-        $ohlcv->close = (string)$day_data["close"];
-        $ohlcv->volume = (string)$day_data["volume"];
+        $ohlcv->open = (string) $day_data["open"];
+        $ohlcv->high = (string) $day_data["high"];
+        $ohlcv->low = (string) $day_data["low"];
+        $ohlcv->close = (string) $day_data["close"];
+        $ohlcv->volume = (string) $day_data["volume"];
 
         $ohlcv_array[] = $ohlcv;
     }
