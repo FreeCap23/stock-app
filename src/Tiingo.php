@@ -192,8 +192,9 @@ class Tiingo implements StockMarketDataProvider
             throw new TiingoException("Failed to decode JSON response: " . json_last_error_msg());
         }
 
+        // TODO: Write a test for this exception
         // Check if API returned an error message inside valid JSON
-        // For example {"detail": "Error message"}
+        // For example {"detail":"Error: Ticker 'THISDOESNTEXIST' not found"}
         if (isset($array["detail"])) {
             throw new TiingoException("Tiingo API error: " . $array["detail"]);
         }
@@ -204,6 +205,7 @@ class Tiingo implements StockMarketDataProvider
             $ohlcv_object_array[] = $day_ohlcv;
         }
 
+        // TODO: Write a test for correct result
         return $ohlcv_object_array;
     }
 

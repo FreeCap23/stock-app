@@ -80,4 +80,64 @@ class TiingoTests extends TestCase
         $tiingo = new Tiingo();
         $tiingo->getOhlcv("RNDM", $start_date, $end_date);
     }
+
+    public function testGetOhlcvThrowsTiingoExceptionWithNullResponse()
+    {
+        // Prepare function arguments
+        $start_date = \DateTime::createFromFormat("Y-m-d", "2019-01-02");
+        $end_date = \DateTime::createFromFormat("Y-m-d", "2019-01-07");
+
+        $makeRequestParameters = [
+            "format" => "json",
+            "startDate" => $start_date->format('Y-m-d'),
+            "endDate" => $end_date->format('Y-m-d'),
+        ];
+
+        $tiingo = $this->getMockBuilder(Tiingo::class)
+                       ->onlyMethods(["makeRequest"])
+                       ->disableOriginalConstructor()
+                       ->getMock();
+
+        // Setup the expectation for the setApiKey() method
+        $tiingo->expects($this->once())
+               ->method("makeRequest")
+               ->with("prices", $makeRequestParameters)
+               ->willReturn("");
+
+        try {
+            $tiingo->getOhlcv("TICKER", $start_date, $end_date);
+        } catch (TiingoException $e) {
+            $this->assertEquals("Received null response", $e->getMessage());
+        }
+    }
+
+    public function testGetOhlcvThrowsTiingoExceptionWithInvalidJsonResponse()
+    {
+        // Prepare function arguments
+        $start_date = \DateTime::createFromFormat("Y-m-d", "2019-01-02");
+        $end_date = \DateTime::createFromFormat("Y-m-d", "2019-01-07");
+
+        $makeRequestParameters = [
+            "format" => "json",
+            "startDate" => $start_date->format('Y-m-d'),
+            "endDate" => $end_date->format('Y-m-d'),
+        ];
+
+        $tiingo = $this->getMockBuilder(Tiingo::class)
+                       ->onlyMethods(["makeRequest"])
+                       ->disableOriginalConstructor()
+                       ->getMock();
+
+        // Setup the expectation for the setApiKey() method
+        $tiingo->expects($this->once())
+               ->method("makeRequest")
+               ->with("prices", $makeRequestParameters)
+               ->willReturn("this is not a valid json string");
+
+        try {
+            $tiingo->getOhlcv("TICKER", $start_date, $end_date);
+        } catch (TiingoException $e) {
+            $this->assertStringStartsWith("Failed to decode JSON response: ", $e->getMessage());
+        }
+    }
 }
