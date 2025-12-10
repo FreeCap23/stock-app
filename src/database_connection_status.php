@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// TODO: This page should use a Database class and check its status via a class method
+
 $serverName = "db";
 $databaseName = "root_db";
 

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+// TODO: Replace this with a method inside a class Database
 function create_sql_connection()
 {
     // Credentials
@@ -31,6 +32,7 @@ function create_sql_connection()
     }
 }
 
+// TODO: Replace this with a method inside a class Database
 function ingest_ohlcv(OHLCV $ohlcv, string $symbol): bool
 {
     $conn = create_sql_connection();
@@ -61,6 +63,7 @@ function ingest_ohlcv(OHLCV $ohlcv, string $symbol): bool
     }
 }
 
+// TODO: Replace this with a method inside a class Database
 function ingest_ohlcv_array(array $ohlcv_array, string $symbol): int
 {
     $ingested_count = 0;
@@ -74,6 +77,7 @@ function ingest_ohlcv_array(array $ohlcv_array, string $symbol): int
     return $ingested_count;
 }
 
+// TODO: Replace this with a method inside a class Database
 function fetch_ohlcv_data(string $symbol): ?array
 {
     $conn = create_sql_connection();
@@ -96,45 +100,4 @@ function fetch_ohlcv_data(string $symbol): ?array
         $conn = null;
         return null;
     }
-}
-
-function fetch_from_tiingo(string $symbol, string $start_date, ?string $end_date): ?string
-{
-    if (is_null($end_date)) {
-        $end_date = date("Y-m-d");
-    }
-
-    // Make sure the API token is present as an environment variable
-    if (!array_key_exists("TIINGO_API_TOKEN", $_ENV)) {
-        return null;
-    }
-
-    $base_url = "https://api.tiingo.com/tiingo/daily/" . urlencode($symbol) . "/prices";
-
-    // Build parameter string
-    $parameters = [
-        "token" => $_ENV["TIINGO_API_TOKEN"],
-        "format" => "json",
-        "startDate" => $start_date,
-        "endDate" => $end_date,
-    ];
-
-    // Build final GET Request url
-    $url = $base_url . "?" . http_build_query($parameters);
-
-    // Create context with headers for the API request
-    $context = stream_context_create([
-        "http" => [
-            "method" => "GET",
-            "header" => "Content-Type: application/json\r\n",
-        ],
-    ]);
-
-    // Make the request
-    $response = @file_get_contents($url, false, $context);
-    if ($response === false) {
-        return null;
-    }
-
-    return $response;
 }
