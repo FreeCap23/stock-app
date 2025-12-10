@@ -56,4 +56,16 @@ class TiingoTests extends TestCase
 
         $tiingo->setApiKey($API_KEY);
     }
+
+    public function testGetOhlcvThrowsInvalidArgumentExceptionWithEmptyTickerArgument()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        // Prepare function arguments
+        $start_date = \DateTime::createFromFormat("Y-m-d", "2019-01-02");
+        $end_date = \DateTime::createFromFormat("Y-m-d", "2019-01-07");
+
+        $tiingo = new Tiingo();
+        $tiingo->getOhlcv("", $start_date, $end_date);
+    }
 }

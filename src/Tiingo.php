@@ -6,10 +6,11 @@ namespace stock_app;
 
 use UnexpectedValueException;
 use InvalidArgumentException;
+use DateTime;
 
 class Tiingo implements StockMarketDataProvider
 {
-    private string $api_key;
+    private string $api_key = "";
     private string $base_url = "https://api.tiingo.com/tiingo/daily/";
 
     /*
@@ -23,11 +24,16 @@ class Tiingo implements StockMarketDataProvider
     *
     * @throws UnexpectedValueException if API response is null
     * @throws InvalidArgumentException if format is neither json nor csv
+    * @throws RuntimeException if the api key hasn't been set or if it's empty
     *
     * @api
     */
     public function makeRequest(string $method, array $parameters = []): string
     {
+        if ($this->api_key == "") {
+            throw new RuntimeException("Invalid or null api key. Did you forget to set it with setApiKey()?");
+        }
+
         if (isset($parameters["token"]) == false) {
             $parameters["token"] = $this->api_key;
         }
