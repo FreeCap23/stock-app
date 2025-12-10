@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace stock_app;
 
+use UnexpectedValueException;
+use InvalidArgumentException;
+
 class Tiingo implements StockMarketDataProvider
 {
     private string $api_key;
@@ -20,8 +23,10 @@ class Tiingo implements StockMarketDataProvider
     *
     * @throws UnexpectedValueException if API response is null
     * @throws InvalidArgumentException if format is neither json nor csv
+    *
+    * @api
     */
-    protected function makeRequest(string $method, array $parameters = []): string
+    public function makeRequest(string $method, array $parameters = []): string
     {
         if (isset($parameters["token"]) == false) {
             $parameters["token"] = $this->api_key;
@@ -115,7 +120,7 @@ class Tiingo implements StockMarketDataProvider
     * @param string $key Tiingo API Key
     *
     * @throws InvalidArgumentException if $key is other than 40 characters long
-    * @throws TiingoException if an exception is caught
+    * @throws TiingoException if an exception is caught when testing the key
     *
     * @return void
     * @api
@@ -127,16 +132,18 @@ class Tiingo implements StockMarketDataProvider
                 . "The API key must be exactly 40 characters long");
         }
 
+        $this->api_key = $key;
+
         try {
             $response = $this->makeRequest("test");
-            if ($response !== "{'message': 'You successfully sent a request'}") {
-                throw new UnexpectedValueException("Error setting API key. It looks like your key is invalid.\n", $response);
+            if ($response !== '{"message": "You successfully sent a request"}') {
+                throw new UnexpectedValueException("Error setting API key. It looks like your key is invalid.\n" . $response);
             }
             $this->api_key = $response;
         } catch (UnexpectedValueException $e) {
-            throw new TiingoException("Error making request to Tiingo. Received null response", $e);
+            throw new TiingoException("Error making request to Tiingo. Received null response", 0, $e);
         } catch (InvalidArgumentException $e) {
-            throw new TiingoException("Error making request to Tiingo. Invalid response format provided", $e);
+            throw new TiingoException("Error making request to Tiingo. Invalid response format provided", 0, $e);
         }
     }
 
@@ -145,6 +152,10 @@ class Tiingo implements StockMarketDataProvider
     */
     public function getOhlcv(string $ticker, DateTime $start_date, DateTime $end_date): array
     {
+        if ($ticker == "") {
+            throw new InvalidArgumentException("Provided empty ticker string");
+        }
+
         $parameters = [
             "format" => "json",
             "startDate" => $start_date->format('Y-m-d'),
@@ -156,9 +167,9 @@ class Tiingo implements StockMarketDataProvider
         try {
             $response = $this->makeRequest("prices", $parameters);
         } catch (UnexpectedValueException $e) {
-            throw new TiingoException("Error making request to Tiingo. Received null response", $e);
+            throw new TiingoException("Error making request to Tiingo. Received null response", 0, $e);
         } catch (InvalidArgumentException $e) {
-            throw new TiingoException("Error making request to Tiingo. Invalid response format provided", $e);
+            throw new TiingoException("Error making request to Tiingo. Invalid response format provided", 0, $e);
         }
 
         if ($response == "") {
@@ -182,7 +193,7 @@ class Tiingo implements StockMarketDataProvider
             $ohlcv_object_array[] = $day_ohlcv;
         }
 
-        return $ohlcv_object_array
+        return $ohlcv_object_array;
     }
 
     public function getMetadata(string $ticker): Metadata

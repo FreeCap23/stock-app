@@ -1,7 +1,7 @@
 CONTAINER_NAME = php-app
 
 PHP_UNIT_BIN = vendor/bin/phpunit
-TEST_FILES = tests/ingest_data_test.php tests/parse_json_test.php
+TEST_FILES = tests/TiingoTests.php
 
 all: api_key build_container up update_composer
 
