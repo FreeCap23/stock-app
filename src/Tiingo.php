@@ -153,6 +153,7 @@ class Tiingo implements StockMarketDataProvider
         }
     }
 
+    // TODO: Write phpdoc comment
     /**
     * @return OHLCV[]
     */
@@ -160,6 +161,10 @@ class Tiingo implements StockMarketDataProvider
     {
         if ($ticker == "") {
             throw new InvalidArgumentException("Provided empty ticker string");
+        }
+
+        if ($start_date > $end_date) {
+            throw new InvalidArgumentException("Provided start date is after end date");
         }
 
         $parameters = [
@@ -202,6 +207,7 @@ class Tiingo implements StockMarketDataProvider
         return $ohlcv_object_array;
     }
 
+    // TODO: Write phpdoc comment
     public function getMetadata(string $ticker): Metadata
     {
         // TODO:

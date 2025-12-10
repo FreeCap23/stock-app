@@ -68,4 +68,16 @@ class TiingoTests extends TestCase
         $tiingo = new Tiingo();
         $tiingo->getOhlcv("", $start_date, $end_date);
     }
+
+    public function testGetOhlcvThrowsInvalidArgumentExceptionWithStartDateAfterEndDate()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        // Prepare function arguments
+        $start_date = \DateTime::createFromFormat("Y-m-d", "2019-01-02");
+        $end_date = \DateTime::createFromFormat("Y-m-d", "2019-01-01");
+
+        $tiingo = new Tiingo();
+        $tiingo->getOhlcv("RNDM", $start_date, $end_date);
+    }
 }
