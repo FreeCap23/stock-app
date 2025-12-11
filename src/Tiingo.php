@@ -6,6 +6,7 @@ namespace stock_app;
 
 use UnexpectedValueException;
 use InvalidArgumentException;
+use RuntimeException;
 use DateTime;
 
 class Tiingo implements StockMarketDataProvider
@@ -101,7 +102,6 @@ class Tiingo implements StockMarketDataProvider
         ["splitFactor"]=>
         float(1)
     * }
-    *
     */
     private function ohlcvArrayToObject(array $array): OHLCV
     {
@@ -192,7 +192,6 @@ class Tiingo implements StockMarketDataProvider
             throw new TiingoException("Failed to decode JSON response: " . json_last_error_msg());
         }
 
-        // TODO: Write a test for this exception
         // Check if API returned an error message inside valid JSON
         // For example {"detail":"Error: Ticker 'THISDOESNTEXIST' not found"}
         if (isset($array["detail"])) {
@@ -201,11 +200,10 @@ class Tiingo implements StockMarketDataProvider
 
         $ohlcv_object_array = [];
         foreach ($array as $day_data) {
-            $day_ohlcv = $this->jsonOhlcvToObject($day_data);
+            $day_ohlcv = $this->ohlcvArrayToObject($day_data);
             $ohlcv_object_array[] = $day_ohlcv;
         }
 
-        // TODO: Write a test for correct result
         return $ohlcv_object_array;
     }
 
