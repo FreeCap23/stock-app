@@ -24,12 +24,13 @@ class Tiingo implements StockMarketDataProvider
     * @param array $parameters Optional parameters for the method
     *
     * @throws UnexpectedValueException if API response is null
-    * @throws InvalidArgumentException if format is neither json nor csv
+    * @throws InvalidArgumentException if format is specified, but is neither json nor csv
+    * @throws InvalidArgumentException if no ticker is specified and the method is something other than "test"
     * @throws RuntimeException if the api key hasn't been set or if it's empty
     *
     * @api
     */
-    public function makeRequest(string $method, array $parameters = []): string
+    public function makeRequest(string $method, string $ticker = "", array $parameters = []): string
     {
         if ($this->api_key == "") {
             throw new RuntimeException("Invalid or null api key. Did you forget to set it with setApiKey()?");
@@ -37,6 +38,11 @@ class Tiingo implements StockMarketDataProvider
 
         if (isset($parameters["token"]) == false) {
             $parameters["token"] = $this->api_key;
+        }
+
+        // "test" is the only method that doesn't require a ticker
+        if ($method !== "test" && $ticker == "") {
+            throw new InvalidArgumentException("You need to specify a ticker with method " . $method);
         }
 
         if (isset($parameters["format"]) == false) {
@@ -49,7 +55,11 @@ class Tiingo implements StockMarketDataProvider
             throw new InvalidArgumentException("Invalid response format " . $parameters["format"]);
         }
 
-        $url = $this->base_url . "/" . $method . "?" . http_build_query($parameters);
+        if ($method == "test") {
+            $url = $this->base_url . "/test?" . http_build_query($parameters);
+        } else {
+            $url = $this->base_url . "/" . $ticker . "/" . $method . "?" . http_build_query($parameters);
+        }
 
         $context = stream_context_create([
             "http" => [
@@ -176,7 +186,7 @@ class Tiingo implements StockMarketDataProvider
         $response = "";
 
         try {
-            $response = $this->makeRequest("prices", $parameters);
+            $response = $this->makeRequest("prices", $ticker, $parameters);
         } catch (UnexpectedValueException $e) {
             throw new TiingoException("Error making request to Tiingo. Received null response", 0, $e);
         } catch (InvalidArgumentException $e) {
@@ -210,6 +220,8 @@ class Tiingo implements StockMarketDataProvider
     // TODO: Write phpdoc comment
     public function getMetadata(string $ticker): Metadata
     {
-        // TODO:
+        if ($ticker == "") {
+            throw new InvalidArgumentException("Provided empty ticker string");
+        }
     }
 }

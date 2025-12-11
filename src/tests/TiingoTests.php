@@ -102,7 +102,7 @@ class TiingoTests extends TestCase
         // Setup the expectation for the getOhlcv() method
         $tiingo->expects($this->once())
                ->method("makeRequest")
-               ->with("prices", $makeRequestParameters)
+               ->with("prices", "TICKER", $makeRequestParameters)
                ->willReturn("");
 
         try {
@@ -132,7 +132,7 @@ class TiingoTests extends TestCase
         // Setup the expectation for the getOhlcv() method
         $tiingo->expects($this->once())
                ->method("makeRequest")
-               ->with("prices", $makeRequestParameters)
+               ->with("prices", "TICKER", $makeRequestParameters)
                ->willReturn("this is not a valid json string");
 
         try {
@@ -162,7 +162,7 @@ class TiingoTests extends TestCase
         // Setup the expectation for the getOhlcv() method
         $tiingo->expects($this->once())
                ->method("makeRequest")
-               ->with("prices", $makeRequestParameters)
+               ->with("prices", "TICKER", $makeRequestParameters)
                ->willReturn('{"detail":"Error: Ticker \'TICKER\' not found"}');
 
         try {
@@ -232,7 +232,7 @@ class TiingoTests extends TestCase
         // Setup the expectation for the getOhlcv() method
         $tiingo->expects($this->once())
                ->method("makeRequest")
-               ->with("prices", $makeRequestParameters)
+               ->with("prices", "BFAM", $makeRequestParameters)
                ->willReturn($response);
 
         // Intentionally don't try catch this method so we know what went wrong if it does throw an exception.
