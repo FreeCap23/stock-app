@@ -161,6 +161,7 @@ class Tiingo implements StockMarketDataProvider
         } catch (InvalidArgumentException $e) {
             throw new TiingoException("Error making request to Tiingo. Invalid response format provided", 0, $e);
         }
+        // TODO: catch RuntimeException
     }
 
     // TODO: Write phpdoc comment
@@ -190,8 +191,9 @@ class Tiingo implements StockMarketDataProvider
         } catch (UnexpectedValueException $e) {
             throw new TiingoException("Error making request to Tiingo. Received null response", 0, $e);
         } catch (InvalidArgumentException $e) {
-            throw new TiingoException("Error making request to Tiingo. Invalid response format provided", 0, $e);
+            throw new TiingoException("Error making request to Tiingo.", 0, $e);
         }
+        // TODO: catch RuntimeException
 
         if ($response == "") {
             throw new TiingoException("Received null response");
@@ -218,10 +220,46 @@ class Tiingo implements StockMarketDataProvider
     }
 
     // TODO: Write phpdoc comment
+    // TODO: Write tests for this method
     public function getMetadata(string $ticker): Metadata
     {
         if ($ticker == "") {
             throw new InvalidArgumentException("Provided empty ticker string");
         }
+
+        $response = "";
+        try {
+            $response = $this->makeRequest("prices", $ticker);
+        } catch (UnexpectedValueException $e) {
+            throw new TiingoException("Error making request to Tiingo. Received null response", 0, $e);
+        } catch (InvalidArgumentException $e) {
+            throw new TiingoException("Error making request to Tiingo.", 0, $e);
+        }
+        // TODO: catch RuntimeException
+
+        if ($response == "") {
+            throw new TiingoException("Received null response");
+        }
+
+        $array = json_decode($response, associative: true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new TiingoException("Failed to decode JSON response: " . json_last_error_msg());
+        }
+
+        // Check if API returned an error message inside valid JSON
+        // For example {"detail":"Error: Ticker 'THISDOESNTEXIST' not found"}
+        if (isset($array["detail"])) {
+            throw new TiingoException("Tiingo API error: " . $array["detail"]);
+        }
+
+        $metadata = new Metadata();
+        $metadata->name = $array["name"];
+        $metadata->description = $array["description"];
+        $metadata->startDate = $array["startDate"];
+        $metadata->endDate = $array["endDate"];
+        $metadata->exchangeCode = $array["exchangeCode"];
+        $metadata->ticker = $array["ticker"];
+
+        return $metadata;
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace tests;
 
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use stock_app\Tiingo;
 use stock_app\TiingoException;
@@ -239,4 +240,6 @@ class TiingoTests extends TestCase
         $actual = $tiingo->getOhlcv("BFAM", $start_date, $end_date); // Ticker was chosen at random using a website
         $this->assertEquals($expected, $actual);
     }
+
+    //TODO: Write tests for RuntimeException of makeRequest method
 }
