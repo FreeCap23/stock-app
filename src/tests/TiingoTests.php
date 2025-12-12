@@ -340,4 +340,12 @@ class TiingoTests extends TestCase
         $actual = $tiingo->getMetadata("BFAM");
         $this->assertEquals($expected, $actual);
     }
+
+    public function testMakeRequestThrowsRuntimeExceptionWithUndefinedApiKey(): void
+    {
+        $this->expectException(\RuntimeException::class);
+
+        $tiingo = new Tiingo();
+        $tiingo->makeRequest("test", "BFAM");
+    }
 }

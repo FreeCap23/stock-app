@@ -30,7 +30,6 @@ class Tiingo implements StockMarketDataProvider
     *
     * @api
     */
-    // TODO: Write tests for this method
     public function makeRequest(string $method, string $ticker = "", array $parameters = []): string
     {
         if ($this->api_key == "") {
@@ -43,6 +42,7 @@ class Tiingo implements StockMarketDataProvider
 
         // "test" is the only method that doesn't require a ticker
         if ($method !== "test" && $ticker == "") {
+            // TODO: Write test for this exception
             throw new InvalidArgumentException("You need to specify a ticker with method " . $method);
         }
 
@@ -53,6 +53,7 @@ class Tiingo implements StockMarketDataProvider
         } elseif ($parameters["format"] == "csv") {
             $content_type = "text/csv";
         } else {
+            // TODO: Write test for this exception
             throw new InvalidArgumentException("Invalid response format " . $parameters["format"]);
         }
 
@@ -69,8 +70,10 @@ class Tiingo implements StockMarketDataProvider
             ],
         ]);
 
+        // TODO: Write test that checks if this method calls file_get_contents with the expected arguments
         $response = file_get_contents($url, context: $context);
         if ($response == false) {
+            // TODO: Write test for this exception
             throw new UnexpectedValueException("Error making request. file_get_contents returned false.");
         }
 
