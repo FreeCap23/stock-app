@@ -30,6 +30,7 @@ class Tiingo implements StockMarketDataProvider
     *
     * @api
     */
+    // TODO: Write tests for this method
     public function makeRequest(string $method, string $ticker = "", array $parameters = []): string
     {
         if ($this->api_key == "") {
@@ -160,8 +161,9 @@ class Tiingo implements StockMarketDataProvider
             throw new TiingoException("Error making request to Tiingo. Received null response", 0, $e);
         } catch (InvalidArgumentException $e) {
             throw new TiingoException("Error making request to Tiingo. Invalid response format provided", 0, $e);
+        } catch (RuntimeException $e) {
+            throw new TiingoException("Error making request to Tiingo. Is the API key set?", 0, $e);
         }
-        // TODO: catch RuntimeException
     }
 
     // TODO: Write phpdoc comment
@@ -192,8 +194,9 @@ class Tiingo implements StockMarketDataProvider
             throw new TiingoException("Error making request to Tiingo. Received null response", 0, $e);
         } catch (InvalidArgumentException $e) {
             throw new TiingoException("Error making request to Tiingo.", 0, $e);
+        } catch (RuntimeException $e) {
+            throw new TiingoException("Error making request to Tiingo. Is the API key set?", 0, $e);
         }
-        // TODO: catch RuntimeException
 
         if ($response == "") {
             throw new TiingoException("Received null response");
@@ -220,7 +223,6 @@ class Tiingo implements StockMarketDataProvider
     }
 
     // TODO: Write phpdoc comment
-    // TODO: Write tests for this method
     public function getMetadata(string $ticker): Metadata
     {
         if ($ticker == "") {
@@ -234,8 +236,9 @@ class Tiingo implements StockMarketDataProvider
             throw new TiingoException("Error making request to Tiingo. Received null response", 0, $e);
         } catch (InvalidArgumentException $e) {
             throw new TiingoException("Error making request to Tiingo.", 0, $e);
+        } catch (RuntimeException $e) {
+            throw new TiingoException("Error making request to Tiingo. Is the API key set?", 0, $e);
         }
-        // TODO: catch RuntimeException
 
         if ($response == "") {
             throw new TiingoException("Received null response");

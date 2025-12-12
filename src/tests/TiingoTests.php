@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 use stock_app\Tiingo;
 use stock_app\TiingoException;
 use stock_app\OHLCV;
+use stock_app\Metadata;
 
 class TiingoTests extends TestCase
 {
@@ -241,5 +242,102 @@ class TiingoTests extends TestCase
         $this->assertEquals($expected, $actual);
     }
 
-    //TODO: Write tests for RuntimeException of makeRequest method
+    public function testGetMetadataThrowsInvalidArgumentExceptionWithEmptyTickerArgument(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        $tiingo = new Tiingo();
+        $tiingo->getMetadata("");
+    }
+
+    public function testGetMetadataThrowsTiingoExceptionWithNullResponse(): void
+    {
+        $tiingo = $this->getMockBuilder(Tiingo::class)
+                       ->onlyMethods(["makeRequest"])
+                       ->disableOriginalConstructor()
+                       ->getMock();
+
+        // Setup the expectation for the getOhlcv() method
+        $tiingo->expects($this->once())
+               ->method("makeRequest")
+               ->with("prices", "TICKER")
+               ->willReturn("");
+
+        try {
+            $tiingo->getMetadata("TICKER");
+        } catch (TiingoException $e) {
+            $this->assertEquals("Received null response", $e->getMessage());
+        }
+    }
+
+    public function testGetMetadataThrowsTiingoExceptionWithInvalidJsonResponse(): void
+    {
+        $tiingo = $this->getMockBuilder(Tiingo::class)
+                       ->onlyMethods(["makeRequest"])
+                       ->disableOriginalConstructor()
+                       ->getMock();
+
+        // Setup the expectation for the getOhlcv() method
+        $tiingo->expects($this->once())
+               ->method("makeRequest")
+               ->with("prices", "TICKER")
+               ->willReturn("this is not a valid json string");
+
+        try {
+            $tiingo->getMetadata("TICKER");
+        } catch (TiingoException $e) {
+            $this->assertStringStartsWith("Failed to decode JSON response: ", $e->getMessage());
+        }
+    }
+
+    public function testGetMetadataThrowsTiingoExceptionWithErrorInJsonResponse(): void
+    {
+        $tiingo = $this->getMockBuilder(Tiingo::class)
+                       ->onlyMethods(["makeRequest"])
+                       ->disableOriginalConstructor()
+                       ->getMock();
+
+        // Setup the expectation for the getOhlcv() method
+        $tiingo->expects($this->once())
+               ->method("makeRequest")
+               ->with("prices", "TICKER")
+               ->willReturn('{"detail":"Error: Ticker \'TICKER\' not found"}');
+
+        try {
+            $tiingo->getMetadata("TICKER");
+        } catch (TiingoException $e) {
+            $this->assertStringStartsWith("Tiingo API error: ", $e->getMessage());
+        }
+    }
+
+    public function testGetMetadataReturnsCorrectValue(): void
+    {
+        $response = <<<JSON
+        {"ticker": "BFAM", "name": "Bright Horizons Family Solutions Inc", "description": "Bright Horizons Family Solution Inc., provider of child care and early education services, as well as other services designed to help employers and families better address the challenges of work and life. The Company provides services primarily under multi-year contracts with employers who offer child care and other dependent care solutions as part of their employee benefits packages to improve employee engagement, productivity, recruitment and retention. As of June 30, 2012, the Company operated a total of 773 child care and early education centers across a range of customer industries with the capacity to serve approximately 87,400 children in the United States, as well as in the United Kingdom, the Netherlands, Ireland, Canada and India. In April 2013, it announced the acquisition of kidsunlimited, operator of nurseries throughout England and Scotland.", "startDate": "2013-01-25", "endDate": "2025-12-11", "exchangeCode": "NYSE"}
+        JSON;
+
+        $tiingo = $this->getMockBuilder(Tiingo::class)
+                       ->onlyMethods(["makeRequest"])
+                       ->disableOriginalConstructor()
+                       ->getMock();
+
+        // Setup the expectation for the getOhlcv() method
+        $tiingo->expects($this->once())
+               ->method("makeRequest")
+               ->with("prices", "BFAM") // Ticker was chosen at random using a website
+               ->willReturn($response);
+
+        $expected = new Metadata();
+        $expected->name = "Bright Horizons Family Solutions Inc";
+        $expected->description = <<<END
+                                    Bright Horizons Family Solution Inc., provider of child care and early education services, as well as other services designed to help employers and families better address the challenges of work and life. The Company provides services primarily under multi-year contracts with employers who offer child care and other dependent care solutions as part of their employee benefits packages to improve employee engagement, productivity, recruitment and retention. As of June 30, 2012, the Company operated a total of 773 child care and early education centers across a range of customer industries with the capacity to serve approximately 87,400 children in the United States, as well as in the United Kingdom, the Netherlands, Ireland, Canada and India. In April 2013, it announced the acquisition of kidsunlimited, operator of nurseries throughout England and Scotland.
+                                    END;
+        $expected->startDate = "2013-01-25";
+        $expected->endDate = "2025-12-11";
+        $expected->exchangeCode = "NYSE";
+        $expected->ticker = "BFAM";
+
+        $actual = $tiingo->getMetadata("BFAM");
+        $this->assertEquals($expected, $actual);
+    }
 }
