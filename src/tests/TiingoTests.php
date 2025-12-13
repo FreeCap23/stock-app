@@ -22,12 +22,8 @@ class TiingoTests extends TestCase
                        ->disableOriginalConstructor()
                        ->getMock();
 
-        // Setup the expectation for the setApiKey() method
-        $tiingo->expects($this->once())
-               ->method("makeRequest")
-               ->with("test")
-               ->willReturn('{"message": "You successfully sent a request"}');
-
+        // The function doesn't return anything, so there's nothing to assert.
+        // Instead, it can throw an exception, so if no exception has been thrown, that means the test passes.
         $tiingo->setApiKey($API_KEY);
     }
 
@@ -37,26 +33,6 @@ class TiingoTests extends TestCase
 
         $API_KEY = "mock-api-key-NOT-40-characters-long";
         $tiingo = new Tiingo();
-        $tiingo->setApiKey($API_KEY);
-    }
-
-    public function testSetApiKeyThrowsTiingoException(): void
-    {
-        $this->expectException(TiingoException::class);
-
-        $API_KEY = "mock-api-key-40-characters-long000000000";
-
-        $tiingo = $this->getMockBuilder(Tiingo::class)
-                       ->onlyMethods(["makeRequest"])
-                       ->disableOriginalConstructor()
-                       ->getMock();
-
-        // Setup the expectation for the setApiKey() method
-        $tiingo->expects($this->once())
-               ->method("makeRequest")
-               ->with("test")
-               ->willReturn('{"message": "Auth Token was not correct"}');
-
         $tiingo->setApiKey($API_KEY);
     }
 

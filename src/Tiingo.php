@@ -135,12 +135,11 @@ class Tiingo implements StockMarketDataProvider
     }
 
     /**
-    * Sets the API key, checking for the correct character count & making a test request
+    * Sets the API key, checking for the correct character count
     *
     * @param string $key Tiingo API Key
     *
     * @throws InvalidArgumentException if $key is other than 40 characters long
-    * @throws TiingoException if an exception is caught when testing the key
     *
     * @return void
     * @api
@@ -153,20 +152,6 @@ class Tiingo implements StockMarketDataProvider
         }
 
         $this->api_key = $key;
-
-        try {
-            $response = $this->makeRequest("test");
-            if ($response !== '{"message": "You successfully sent a request"}') {
-                throw new UnexpectedValueException("Error setting API key. It looks like your key is invalid.\n" . $response);
-            }
-            $this->api_key = $response;
-        } catch (UnexpectedValueException $e) {
-            throw new TiingoException("Error making request to Tiingo. Received null response", 0, $e);
-        } catch (InvalidArgumentException $e) {
-            throw new TiingoException("Error making request to Tiingo. Invalid response format provided", 0, $e);
-        } catch (RuntimeException $e) {
-            throw new TiingoException("Error making request to Tiingo. Is the API key set?", 0, $e);
-        }
     }
 
     // TODO: Write phpdoc comment
