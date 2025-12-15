@@ -129,11 +129,65 @@ if ($symbol && $start_date && $end_date) {
                                     tickangle: -45
                                 },
                                 yaxis: {
-                                    title: "Price (USD)",
+                                    title: {
+                                        text: "Price (USD)",
+                                        standoff: 20
+                                    },
                                     tickprefix: "$",
-                                    side: "right"
+                                    side: "right",
+                                    automargin: true
                                 },
-                                margin: { t: 50, r: 30, b: 50, l: 60 }
+                                margin: { t: 50, r: 30, b: 50, l: 60 },
+                                shapes: [
+                                // Horizontal line at last close price
+                                {
+                                    type: 'line',
+                                    xref: 'paper',
+                                    yref: 'y',
+
+                                    // These values don't matter
+                                    x0: 0,
+                                    x1: 1,
+
+                                    y0: <?php echo (float) end($chart_closes)?>,
+                                    y1: <?php echo (float) end($chart_closes)?>,
+                                    line: {
+                                        // If price at close > price at open, draw the line in green
+                                        <?php if ((float) end($chart_closes) > (float) end($chart_opens)) : ?>
+                                            color: '#2F7D32BA',
+                                        // Otherwise, draw the line in red
+                                        <?php else : ?>
+                                            color: '#C62828BA',
+                                        <?php endif; ?>
+                                        width: 1,
+                                        dash:'dot'
+                                    }
+                                }
+                                ],
+                                annotations: [
+                                {
+                                    xref: 'paper', // x takes values between 0 and 1
+                                    x: 1, // Far right of the chart
+                                    y: <?php echo (float) end($chart_closes)?>,
+
+                                    xanchor: 'left',
+                                    yanchor: 'middle',
+
+                                    text: '<?php echo end($chart_closes) ?>',
+                                    showarrow: false,
+
+                                    font: {
+                                        // If price at close > price at open, draw the text in green
+                                        <?php if ((float) end($chart_closes) > (float) end($chart_opens)) : ?>
+                                            color: '#2F7D32',
+                                        // Otherwise, draw the text in red
+                                        <?php else : ?>
+                                            color: '#C62828',
+                                        <?php endif; ?>
+                                        size: 12,
+                                    }
+                                }
+                                ]
                             };
                             Plotly.newPlot("chartContainer", [trace], layout, { responsive: true, scrollZoom: true });
                         }
