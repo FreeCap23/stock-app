@@ -9,8 +9,11 @@ require __DIR__ . '/vendor/autoload.php';
 use InvalidArgumentException;
 use RuntimeException;
 use DateInterval;
+use DateTime;
 
 $error_message = null;
+$start_date = isset($_GET["start_date"]) ? htmlspecialchars($_GET["start_date"]) : "";
+$end_date = isset($_GET["end_date"]) ? htmlspecialchars($_GET["end_date"]) : "";
 $symbol = isset($_GET["symbol"]) ? htmlspecialchars($_GET["symbol"]) : "";
 $tiingo = new Tiingo();
 if (array_key_exists("TIINGO_API_TOKEN", $_ENV)) {
@@ -19,20 +22,16 @@ if (array_key_exists("TIINGO_API_TOKEN", $_ENV)) {
     throw new RuntimeException("Tiingo API key environment variable not found!");
 }
 
-if ($symbol) {
+if ($symbol && $start_date && $end_date) {
     // TODO: First, try to fetch from database
 
     // If no data found, fetch from Tiingo and ingest
     // // TODO: update this condition after implementing fetching from local database
     if (true) {
-        $end_date = date_create();
-
-        // TODO: Add method to let the user select the interval
-        $start_date = clone $end_date;
-        $start_date->sub(DateInterval::createFromDateString("1 month"));
-
         try {
-            $ohlcv_array = $tiingo->getOhlcv($symbol, $start_date, $end_date);
+            $start = DateTime::createFromFormat("Y-m-d", $start_date);
+            $end = DateTime::createFromFormat("Y-m-d", $end_date);
+            $ohlcv_array = $tiingo->getOhlcv($symbol, $start, $end);
         } catch (TiingoException|InvalidArgumentException $e) {
             $error_message = $e->getMessage();
         }
@@ -51,7 +50,39 @@ if ($symbol) {
             <div class="form-container">
                 <form action="" method="GET">
                     <label for="symbol">Stock Symbol:</label>
-                    <input type="text" name="symbol" id="symbol" value="<?php echo $symbol; ?>" placeholder="e.g., AAPL" required>
+                    <input
+                        type="text"
+                        name="symbol"
+                        id="symbol"
+                        value="<?php echo $symbol; ?>"
+                        placeholder="e.g. AAPL"
+                        required
+                    >
+                    <label for="start_date">Start date: </label>
+                    <input
+                        type="date"
+                        name="start_date"
+                        id="start_date"
+                        max=<?php echo date_create()->sub(DateInterval::createFromDateString("1 day"))->format("Y-m-d")?>
+                        <?php if ($start_date == "") : ?>
+                            value=<?php echo date_create()->sub(DateInterval::createFromDateString("1 day"))->format("Y-m-d")?>
+                        <?php else : ?>
+                            value=<?php echo $start_date?>
+                        <?php endif ?>
+                        required
+                    >
+                    <label for="end_date">End date: </label>
+                    <input
+                        type="date"
+                        name="end_date"
+                        id="end_date"
+                        <?php if ($end_date == "") : ?>
+                            value=<?php echo date_create()->format("Y-m-d")?>
+                        <?php else : ?>
+                            value=<?php echo $end_date?>
+                        <?php endif ?>
+                        required
+                    >
                     <input type="submit" value="Load Chart">
                 </form>
             </div>
