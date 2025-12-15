@@ -135,7 +135,7 @@ if ($symbol && $start_date && $end_date) {
                                 },
                                 margin: { t: 50, r: 30, b: 50, l: 60 }
                             };
-                            Plotly.newPlot("chartContainer", [trace], layout, { responsive: true });
+                            Plotly.newPlot("chartContainer", [trace], layout, { responsive: true, scrollZoom: true });
                         }
                     </script>
                 <?php endif; ?>
