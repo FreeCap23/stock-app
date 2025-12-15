@@ -233,7 +233,7 @@ class TiingoTests extends TestCase
                        ->disableOriginalConstructor()
                        ->getMock();
 
-        // Setup the expectation for the getOhlcv() method
+        // Setup the expectation for the getMetadata() method
         $tiingo->expects($this->once())
                ->method("makeRequest")
                ->with("prices", "TICKER")
@@ -253,7 +253,7 @@ class TiingoTests extends TestCase
                        ->disableOriginalConstructor()
                        ->getMock();
 
-        // Setup the expectation for the getOhlcv() method
+        // Setup the expectation for the getMetadata() method
         $tiingo->expects($this->once())
                ->method("makeRequest")
                ->with("prices", "TICKER")
@@ -273,7 +273,7 @@ class TiingoTests extends TestCase
                        ->disableOriginalConstructor()
                        ->getMock();
 
-        // Setup the expectation for the getOhlcv() method
+        // Setup the expectation for the getMetadata() method
         $tiingo->expects($this->once())
                ->method("makeRequest")
                ->with("prices", "TICKER")
@@ -297,7 +297,7 @@ class TiingoTests extends TestCase
                        ->disableOriginalConstructor()
                        ->getMock();
 
-        // Setup the expectation for the getOhlcv() method
+        // Setup the expectation for the getMetadata() method
         $tiingo->expects($this->once())
                ->method("makeRequest")
                ->with("prices", "BFAM") // Ticker was chosen at random using a website
@@ -323,5 +323,14 @@ class TiingoTests extends TestCase
 
         $tiingo = new Tiingo();
         $tiingo->makeRequest("test", "BFAM");
+    }
+
+    public function testMakeRequestThrowsInvalidArgumentExceptionWithUndefinedTickerAndMethodOtherThanTest(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        // TODO:
+
+        $tiingo->makeRequest("prices", "BFAM");
     }
 }
