@@ -2,44 +2,39 @@
 
 declare(strict_types=1);
 
-require_once "ingest_data.php";
-require_once "parse_json.php";
+namespace stock_app;
 
-$symbol = isset($_GET["symbol"]) ? htmlspecialchars($_GET["symbol"]) : "";
-$data = null;
+require __DIR__ . '/vendor/autoload.php';
+
+use InvalidArgumentException;
+use RuntimeException;
+use DateInterval;
+
 $error_message = null;
-$chart_dates = [];
-$chart_opens = [];
-$chart_highs = [];
-$chart_lows = [];
-$chart_closes = [];
+$symbol = isset($_GET["symbol"]) ? htmlspecialchars($_GET["symbol"]) : "";
+$tiingo = new Tiingo();
+if (array_key_exists("TIINGO_API_TOKEN", $_ENV)) {
+    $tiingo->setApiKey($_ENV["TIINGO_API_TOKEN"]);
+} else {
+    throw new RuntimeException("Tiingo API key environment variable not found!");
+}
 
 if ($symbol) {
-    // First, try to fetch from database
-    $data = fetch_ohlcv_data($symbol);
+    // TODO: First, try to fetch from database
 
     // If no data found, fetch from Tiingo and ingest
-    if ($data !== null && empty($data)) {
-        $time_format = "Y-m-d";
-        $now = DateTime::createFromFormat($time_format, date($time_format));
-        $start_date = date_sub($now, DateInterval::createFromDateString("12 months")); // Get 3 months of data for now
-        $api_response = fetch_from_tiingo($symbol, date_format($start_date, $time_format), null);
-        if ($api_response !== null) {
-            $ohlcv_array = json_to_ohlcv_array($api_response);
-            if ($ohlcv_array !== null && !empty($ohlcv_array)) {
-                $ingested_count = ingest_ohlcv_array($ohlcv_array, $symbol);
-                if ($ingested_count > 0) {
-                    // Fetch again from database after ingesting
-                    $data = fetch_ohlcv_data($symbol);
-                } else {
-                    $error_message = "Failed to ingest data into database.";
-                }
-            } else {
-                $error_message = "Failed to parse data from Tiingo API.
-                The symbol may be invalid or the API may be rate-limited.";
-            }
-        } else {
-            $error_message = "Failed to fetch data from Tiingo API. Please check your API token and connection.";
+    // // TODO: update this condition after implementing fetching from local database
+    if (true) {
+        $end_date = date_create();
+
+        // TODO: Add method to let the user select the interval
+        $start_date = clone $end_date;
+        $start_date->sub(DateInterval::createFromDateString("1 month"));
+
+        try {
+            $ohlcv_array = $tiingo->getOhlcv($symbol, $start_date, $end_date);
+        } catch (TiingoException|InvalidArgumentException $e) {
+            $error_message = $e->getMessage();
         }
     }
 }
@@ -121,22 +116,19 @@ if ($symbol) {
                     <div class="error-message">
                         <?php echo htmlspecialchars($error_message); ?>
                     </div>
-                <?php elseif ($data === null) : ?>
-                    <div class="error-message">
-                        Error fetching data. Please check your database connection.
-                    </div>
-                <?php elseif (empty($data)) : ?>
-                    <div class="error-message">
-                        No data found for symbol "<?php echo $symbol; ?>". Please check the symbol and try again.
-                    </div>
                 <?php else : ?>
                     <?php
-                    foreach ($data as $row) {
-                        $chart_dates[] = $row['date'];
-                        $chart_opens[] = floatval($row['open']);
-                        $chart_highs[] = floatval($row['high']);
-                        $chart_lows[] = floatval($row['low']);
-                        $chart_closes[] = floatval($row['close']);
+                    $chart_dates = [];
+                    $chart_opens = [];
+                    $chart_highs = [];
+                    $chart_lows = [];
+                    $chart_closes = [];
+                    foreach ($ohlcv_array as $ohlcv) {
+                        $chart_dates[] = $ohlcv->date;
+                        $chart_opens[] = $ohlcv->open;
+                        $chart_highs[] = $ohlcv->high;
+                        $chart_lows[] = $ohlcv->low;
+                        $chart_closes[] = $ohlcv->close;
                     }
                     ?>
                     <div id="chartContainer" class="chart-container"></div>

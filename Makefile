@@ -18,6 +18,7 @@ up:
 
 update_composer:
 	docker compose exec $(CONTAINER_NAME) composer update
+	docker compose exec $(CONTAINER_NAME) composer dump-autoload
 
 test:
 	docker compose exec $(CONTAINER_NAME) $(PHP_UNIT_BIN) $(TEST_FILES)
