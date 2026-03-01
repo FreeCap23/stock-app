@@ -20,4 +20,10 @@ interface IDatabase
         string $startDate,
         string $endDate,
     ): ?array;
+
+    public function getExistingDates(
+        string $symbol,
+        string $startDate,
+        string $endDate,
+    ): array;
 }

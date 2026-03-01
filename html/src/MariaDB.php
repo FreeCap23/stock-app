@@ -50,19 +50,59 @@ class MariaDB implements IDatabase
         string $startDate,
         string $endDate,
     ): ?array {
-        // TODO: Update to use new arguments
         $sql = "SELECT date, open, high, low, close, volume
                     FROM daily_ohlcv
                     WHERE symbol = :symbol
+                      AND date >= :start_date
+                      AND date <= :end_date
                     ORDER BY date ASC";
 
         try {
             $stmt = $this->connection->prepare($sql);
-            $stmt->execute(["symbol" => $symbol]);
+            $stmt->execute([
+                "symbol" => $symbol,
+                "start_date" => $startDate,
+                "end_date" => $endDate,
+            ]);
             $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $ohlcv_array = [];
+            foreach ($results as $day) {
+                $ohlcv_array[] = $this->ohlcvArrayToObject($day);
+            }
+            return $ohlcv_array;
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+            return null;
+        }
+    }
+
+    public function getExistingDates(
+        string $symbol,
+        string $startDate,
+        string $endDate,
+    ): array {
+        $sql = "SELECT date
+                    FROM daily_ohlcv
+                    WHERE symbol = :symbol
+                      AND date >= :start_date
+                      AND date <= :end_date
+                    ORDER BY date ASC";
+
+        try {
+            $stmt = $this->connection->prepare($sql);
+            $stmt->execute([
+                "symbol" => $symbol,
+                "start_date" => $startDate,
+                "end_date" => $endDate,
+            ]);
+            // PDO::FETCH_COLUMN returns a flat array of the first selected column
+            $results = $stmt->fetchAll(PDO::FETCH_COLUMN);
             return $results;
         } catch (PDOException $e) {
-            return null;
+            // Returning an empty array is safer here. If the DB fails,
+            // the main script will assume no dates exist and try to fetch from the API.
+            error_log($e->getMessage());
+            return [];
         }
     }
 
@@ -87,5 +127,22 @@ class MariaDB implements IDatabase
         } catch (PDOException $e) {
             return false;
         }
+    }
+
+    private function ohlcvArrayToObject(array $array): OHLCV
+    {
+        // Extract date from ISO timestamp (2019-01-02T00:00:00.000Z -> 2019-01-02)
+        $date_string = $array["date"];
+        $date = substr($date_string, 0, 10); // Extract YYYY-MM-DD from ISO format
+
+        $ohlcv = new OHLCV();
+        $ohlcv->date = $date;
+        $ohlcv->open = (string) $array["open"];
+        $ohlcv->high = (string) $array["high"];
+        $ohlcv->low = (string) $array["low"];
+        $ohlcv->close = (string) $array["close"];
+        $ohlcv->volume = (string) $array["volume"];
+
+        return $ohlcv;
     }
 }

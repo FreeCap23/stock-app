@@ -10,6 +10,7 @@ use InvalidArgumentException;
 use RuntimeException;
 use DateInterval;
 use DateTime;
+use Exception;
 
 $error_message = null;
 $start_date = isset($_GET["start_date"])
@@ -42,22 +43,69 @@ if (
 } else {
     throw new RuntimeException("MariaDB environment variables not found!");
 }
-if ($symbol && $start_date && $end_date) {
-    // TODO: first, check if data between start and end dates for symbol is already present in database
-    // If it is, fetch it from local
-    // If it is only partially there, fetch the missing data
-    // If it is not present at all, fetch all data
 
-    // TODO: update this condition after implementing fetching from local database
-    if (true) {
-        try {
-            $start = DateTime::createFromFormat("Y-m-d", $start_date);
-            $end = DateTime::createFromFormat("Y-m-d", $end_date);
-            $ohlcv_array = $tiingo->getOhlcv($symbol, $start, $end);
-            $db->ingestOhlcvArray($ohlcv_array, $symbol);
-        } catch (TiingoException | InvalidArgumentException $e) {
-            $error_message = $e->getMessage();
+if ($symbol && $start_date && $end_date) {
+    try {
+        $start = DateTime::createFromFormat("Y-m-d", $start_date);
+        $end = DateTime::createFromFormat("Y-m-d", $end_date);
+
+        $existing_dates = $db->getExistingDates(
+            $symbol,
+            $start_date,
+            $end_date,
+        );
+
+        $missing_ranges = [];
+        $current_missing_start = null;
+        $iterator_date = clone $start;
+
+        while ($iterator_date <= $end) {
+            $date_str = $iterator_date->format("Y-m-d");
+
+            // (1 = Mon ... 6 = Sat, 7 = Sun)
+            $is_weekend = in_array($iterator_date->format("N"), [6, 7]);
+
+            if (!in_array($date_str, $existing_dates) && !$is_weekend) {
+                if ($current_missing_start === null) {
+                    $current_missing_start = clone $iterator_date;
+                }
+            } else {
+                // Date exists (or is weekend). If we were tracking a gap, close it and save it.
+                if ($current_missing_start !== null) {
+                    $missing_ranges[] = [
+                        "start" => $current_missing_start,
+                        "end" => (clone $iterator_date)->modify("-1 day"),
+                    ];
+                    $current_missing_start = null;
+                }
+            }
+            $iterator_date->modify("+1 day");
         }
+
+        // Close any trailing gap that reaches the very end of our requested range
+        if ($current_missing_start !== null) {
+            $missing_ranges[] = [
+                "start" => $current_missing_start,
+                "end" => clone $end,
+            ];
+        }
+
+        foreach ($missing_ranges as $range) {
+            $ohlcv_array = $tiingo->getOhlcv(
+                $symbol,
+                $range["start"],
+                $range["end"],
+            );
+
+            if (!empty($ohlcv_array)) {
+                $db->ingestOhlcvArray($ohlcv_array, $symbol);
+            }
+        }
+
+        $final_data = $db->fetchOhlcvData($symbol, $start_date, $end_date);
+    } catch (TiingoException | InvalidArgumentException | Exception $e) {
+        $error_message = $e->getMessage();
+        error_log($error_message);
     }
 }
 ?>
@@ -128,7 +176,7 @@ if ($symbol && $start_date && $end_date) {
                     $chart_highs = [];
                     $chart_lows = [];
                     $chart_closes = [];
-                    foreach ($ohlcv_array as $ohlcv) {
+                    foreach ($final_data as $ohlcv) {
                         $chart_dates[] = $ohlcv->date;
                         $chart_opens[] = $ohlcv->open;
                         $chart_highs[] = $ohlcv->high;
