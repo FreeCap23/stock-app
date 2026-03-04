@@ -118,6 +118,11 @@ if ($symbol && $start_date && $end_date) {
 
     <body>
         <div class="container">
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+                <a href="/login.php" style="padding: 8px 16px; border: 1px solid #4CAF50; color: #4CAF50; text-decoration: none; border-radius: 4px; font-weight: bold; transition: background-color 0.2s;">
+                    Log In
+                </a>
+            </div>
             <div class="form-container">
                 <form action="" method="GET">
                     <label for="symbol">Stock Symbol:</label>

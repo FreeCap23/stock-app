@@ -1,3 +1,13 @@
+CREATE TABLE IF NOT EXISTS ticker_metadata (
+    symbol          VARCHAR(6) NOT NULL,
+    name            VARCHAR(64) NOT NULL,
+    description     TEXT,
+    start_date      DATE NOT NULL,
+    end_date        DATE,
+    exchange_code   VARCHAR(32) NOT NULL,
+    PRIMARY KEY     (symbol)
+);
+
 CREATE TABLE IF NOT EXISTS daily_ohlcv (
     symbol  CHAR(6) NOT NULL,
     date    DATE NOT NULL,
@@ -10,12 +20,9 @@ CREATE TABLE IF NOT EXISTS daily_ohlcv (
     FOREIGN KEY(symbol) REFERENCES ticker_metadata(symbol)
 );
 
-CREATE TABLE IF NOT EXISTS ticker_metadata (
-    symbol          CHAR(6) NOT NULL,
-    name            VARCHAR(64) NOT NULL,
-    description     TEXT,
-    start_date      DATE NOT NULL,
-    end_date        DATE,
-    exchange_code   VARCHAR(32) NOT NULL,
-    PRIMARY KEY     (symbol)
-)
+CREATE TABLE IF NOT EXISTS users (
+    id              INTEGER AUTO_INCREMENT PRIMARY KEY,
+    username        VARCHAR(32) NOT NULL UNIQUE,
+    password        VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    date_registered DATE NOT NULL
+);
