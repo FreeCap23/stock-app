@@ -17,7 +17,9 @@ CREATE TABLE IF NOT EXISTS daily_ohlcv (
     close   DECIMAL(10, 3) NOT NULL,
     volume  INT UNSIGNED NOT NULL,
     PRIMARY KEY (symbol, date),
-    FOREIGN KEY(symbol) REFERENCES ticker_metadata(symbol)
+    -- TODO: uncomment this line and recreate the mariadb volume after you implement saving the metadata of the tickers
+    -- If the symbol is a foreign key but the symbol doesn't exist in the metadata table, then the db doesn't let us create an entry here because it's missing the parent
+    -- FOREIGN KEY(symbol) REFERENCES ticker_metadata(symbol)
 );
 
 CREATE TABLE IF NOT EXISTS users (
