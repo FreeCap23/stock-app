@@ -12,7 +12,7 @@
     <div class="login-container">
         <h2>Welcome!</h2>
 
-        <form action="create_account.php" method="POST">
+        <form action="index.php" method="POST">
 
             <div class="form-group">
                 <label for="username">Username</label>
@@ -24,7 +24,7 @@
                 <input type="password" id="password" name="password" placeholder="Enter your password" required>
             </div>
 
-            <button type="submit" class="submit-btn">Register</button>
+            <button type="submit" name="action" value="register" class="submit-btn">Register</button>
 
         </form>
         <div style="text-align: center; margin-top: 15px; font-size: 14px; color: #555;">

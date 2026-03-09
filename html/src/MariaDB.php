@@ -106,6 +106,53 @@ class MariaDB implements IDatabase
         }
     }
 
+    public function login(string $user, string $pass): string
+    {
+        $sql = "SELECT id, password FROM users WHERE username = :username";
+
+        try {
+            $stmt = $this->connection->prepare($sql);
+            $stmt->execute(["username" => $user]);
+
+            // Fetch the user's row. PDO::FETCH_ASSOC returns it as an associative array.
+            $userData = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($userData && password_verify($pass, $userData["password"])) {
+                return (string) $userData["id"];
+            }
+
+            // If the user doesn't exist, or the password was wrong, return an empty string.
+            return "";
+        } catch (PDOException $e) {
+            // If the database query fails for some reason, return empty string.
+            return "";
+        }
+    }
+
+    public function register(string $user, string $pass): string
+    {
+        $hashedPassword = password_hash($pass, PASSWORD_DEFAULT);
+
+        $currentDate = date("Y-m-d");
+
+        $sql = "INSERT INTO users (username, password, date_registered)
+                VALUES (:username, :password, :date_registered)";
+
+        try {
+            $stmt = $this->connection->prepare($sql);
+            $stmt->execute([
+                "username" => $user,
+                "password" => $hashedPassword,
+                "date_registered" => $currentDate,
+            ]);
+
+            $newId = $this->connection->lastInsertId();
+            return (string) $newId;
+        } catch (PDOException $e) {
+            return "";
+        }
+    }
+
     private function ingestOhlcv(OHLCV $ohlcv, string $symbol): bool
     {
         // Use INSERT IGNORE to handle duplicates gracefully

@@ -1,8 +1,7 @@
 <?php
-
 declare(strict_types=1);
-
 namespace stock_app;
+session_start();
 
 require __DIR__ . "/vendor/autoload.php";
 
@@ -11,22 +10,6 @@ use RuntimeException;
 use DateInterval;
 use DateTime;
 use Exception;
-
-$error_message = null;
-$start_date = isset($_GET["start_date"])
-    ? htmlspecialchars($_GET["start_date"])
-    : "";
-$end_date = isset($_GET["end_date"]) ? htmlspecialchars($_GET["end_date"]) : "";
-$symbol = isset($_GET["symbol"]) ? htmlspecialchars($_GET["symbol"]) : "";
-
-$tiingo = new Tiingo();
-if (array_key_exists("TIINGO_API_TOKEN", $_ENV)) {
-    $tiingo->setApiKey($_ENV["TIINGO_API_TOKEN"]);
-} else {
-    throw new RuntimeException(
-        "Tiingo API key environment variable not found!",
-    );
-}
 
 $db = new MariaDB();
 if (
@@ -44,7 +27,39 @@ if (
     throw new RuntimeException("MariaDB environment variables not found!");
 }
 
-if ($symbol && $start_date && $end_date) {
+$error_message = null;
+$start_date = "";
+$end_date = "";
+$symbol = "";
+
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["action"])) {
+    $username = htmlspecialchars($_POST["username"]);
+    $password = htmlspecialchars($_POST["password"]);
+    $userId = "";
+    if ($_POST["action"] === "login") {
+        $userId = $db->login($username, $password);
+    } elseif ($_POST["action"] === "register") {
+        $userId = $db->register($username, $password);
+    }
+    if ($userId !== "") {
+        session_regenerate_id(true);
+
+        $_SESSION["logged_in"] = true;
+        $_SESSION["user_id"] = $userId;
+        $_SESSION["username"] = $username;
+    } else {
+        // The login() method returned "", so credentials were bad.
+        echo "Invalid username or password.";
+    }
+} elseif (
+    $_SERVER["REQUEST_METHOD"] == "GET" &&
+    isset($_GET["start_date"]) &&
+    isset($_GET["end_date"]) &&
+    isset($_GET["symbol"])
+) {
+    $start_date = htmlspecialchars($_GET["start_date"]);
+    $end_date = htmlspecialchars($_GET["end_date"]);
+    $symbol = htmlspecialchars($_GET["symbol"]);
     try {
         $start = DateTime::createFromFormat("Y-m-d", $start_date);
         $end = DateTime::createFromFormat("Y-m-d", $end_date);
@@ -90,6 +105,15 @@ if ($symbol && $start_date && $end_date) {
             ];
         }
 
+        $tiingo = new Tiingo();
+        if (array_key_exists("TIINGO_API_TOKEN", $_ENV)) {
+            $tiingo->setApiKey($_ENV["TIINGO_API_TOKEN"]);
+        } else {
+            throw new RuntimeException(
+                "Tiingo API key environment variable not found!",
+            );
+        }
+
         foreach ($missing_ranges as $range) {
             $ohlcv_array = $tiingo->getOhlcv(
                 $symbol,
@@ -118,10 +142,30 @@ if ($symbol && $start_date && $end_date) {
 
     <body>
         <div class="container">
-            <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
-                <a href="/login.php" style="padding: 8px 16px; border: 1px solid #4CAF50; color: #4CAF50; text-decoration: none; border-radius: 4px; font-weight: bold; transition: background-color 0.2s;">
-                    Log In
-                </a>
+            <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 20px;">
+                <?php if (
+                    isset($_SESSION["logged_in"]) &&
+                    $_SESSION["logged_in"] === true &&
+                    isset($_SESSION["username"])
+                ): ?>
+
+                    <span style="padding: 8px 16px; font-weight: bold; color: #333; margin-right: 15px;">
+                        Hello, <?php echo htmlspecialchars(
+                            $_SESSION["username"],
+                        ); ?>!
+                    </span>
+
+                    <a href="/logout.php" style="padding: 8px 16px; border: 1px solid #f44336; color: #f44336; text-decoration: none; border-radius: 4px; font-weight: bold; transition: background-color 0.2s;">
+                        Log Out
+                    </a>
+
+                <?php else: ?>
+
+                    <a href="/login.php" style="padding: 8px 16px; border: 1px solid #4CAF50; color: #4CAF50; text-decoration: none; border-radius: 4px; font-weight: bold; transition: background-color 0.2s;">
+                        Log In
+                    </a>
+
+                <?php endif; ?>
             </div>
             <div class="form-container">
                 <form action="" method="GET">

@@ -26,4 +26,10 @@ interface IDatabase
         string $startDate,
         string $endDate,
     ): array;
+
+    /// returns the user id, if login is successful
+    public function login(string $user, string $pass): string;
+
+    /// returns the user id, if registration is successful
+    public function register(string $user, string $pass): string;
 }

@@ -11,7 +11,7 @@
     <div class="login-container">
         <h2>Welcome Back!</h2>
 
-        <form action="authenticate.php" method="POST">
+        <form action="index.php" method="POST">
 
             <div class="form-group">
                 <label for="username">Username</label>
@@ -23,7 +23,7 @@
                 <input type="password" id="password" name="password" placeholder="Enter your password" required>
             </div>
 
-            <button type="submit" class="submit-btn">Log In</button>
+            <button type="submit" name="action" value="login" class="submit-btn">Login</button>
 
         </form>
         <div style="text-align: center; margin-top: 15px; font-size: 14px; color: #555;">
