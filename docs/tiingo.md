@@ -6,21 +6,12 @@ For individuals, the free plan provides:
 - 500 Unique symbols per Month
 - 50 requests / hour
 - 1000 requests / day
-- 1 GB bandwidth / month
+- 2 GB bandwidth / month
 
 ---
 
 ## REST endpoint End-Of-Day
 Tiingo's REST endpoint can provide **JSON** and **CSV** formatted data. The **CSV** data is ~2x smaller than the **JSON** data.
-
-### Example output
-[JSON Daily OHLCV between Jan 1st 2012 & Jan 1st 2016](https://api.tiingo.com/tiingo/daily/AAPL/prices?startDate=2012-1-1&endDate=2016-1-1&token=TOKEN_HERE) 260 KB
-
-[JSON Daily OHLCV between Jan 1st 2012 & Present](https://api.tiingo.com/tiingo/daily/AAPL/prices?startDate=2012-1-1&token=TOKEN_HERE) 911 KB
-
-[CSV Daily OHLCV between Jan 1st 2012 & Jan 1st 2016](https://api.tiingo.com/tiingo/daily/AAPL/prices?startDate=2012-1-1&endDate=2016-1-1&format=csv&token=TOKEN_HERE) 134 KB
-
-[CSV Daily OHLCV between Jan 1st 2012 & Present](https://api.tiingo.com/tiingo/daily/AAPL/prices?startDate=2012-1-1&format=csv&format=csv&token=TOKEN_HERE) 464 KB
 
 ------
 
